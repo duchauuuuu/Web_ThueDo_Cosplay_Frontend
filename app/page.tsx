@@ -6,6 +6,7 @@ import ClothesWeekHighlight from "./_components/ClothesWeekHighlight";
 import CateGories from "./_components/CateGories";
 import CurrentSellClothes from "./_components/CurrentSellClothes";
 import BestCollections from "./_components/BestCollections";
+import DeXuat from "./_components/DeXuat";
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
      <CateGories/>
      <CurrentSellClothes/>
      <BestCollections/>
+     <DeXuat/>
     </div>
   );
 }
