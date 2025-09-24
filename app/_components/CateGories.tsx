@@ -5,42 +5,42 @@ const CateGories = () => {
   const categories = [
     {
       id: 1,
-      name: "Family",
+      name: "Các nước",
       svg: "/icon/svg1.svg"
     },
     {
       id: 2,
-      name: "Fiction", 
+      name: "Đồng phục", 
       svg: "/icon/svg2.svg"
     },
     {
       id: 3,
-      name: "Romance",
+      name: "Harry Potter",
       svg: "/icon/svg3.svg"
     },
     {
       id: 4,
-      name: "Kids",
+      name: "Halloween",
       svg: "/icon/svg4.svg"
     },
     {
       id: 5,
-      name: "History",
+      name: "Cổ tích",
       svg: "/icon/svg5.svg"
     },
     {
       id: 6,
-      name: "Biography",
+      name: "Siêu nhân",
       svg: "/icon/svg6.svg"
     },
     {
       id: 7,
-      name: "Fantasy",
+      name: "Cổ trang",
       svg: "/icon/svg7.svg"
     },
     {
       id: 8,
-      name: "Horror",
+      name: "Anime",
       svg: "/icon/svg8.svg"
     }
   ]
@@ -48,9 +48,9 @@ const CateGories = () => {
   return (
     <div className="py-16 px-[30px]" style={{backgroundColor: '#f9f5f0'}}>
         <div className='flex justify-between items-center mb-12'>
-            <h1 className="text-4xl font-bold text-gray-900">Top categories</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Danh mục hàng đầu</h1>
             <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <span className="text-lg font-medium">Browse All</span>
+              <span className="text-lg font-medium">Xem tất cả</span>
               <svg
                 className="w-5 h-5"
                 fill="none"

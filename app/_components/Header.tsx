@@ -46,7 +46,7 @@ const Header = () => {
   ]
 
   return (
-    <header className={`w-full sticky top-0 z-50 ${
+    <header className={`w-full sticky top-0 z-100 ${
       theme === 'dark' 
         ? 'bg-gray-900 border-b border-gray-800' 
         : 'bg-white border-b border-gray-200'

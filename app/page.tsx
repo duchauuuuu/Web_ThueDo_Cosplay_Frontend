@@ -4,6 +4,8 @@ import Slideshow from "./_components/Slideshow";
 import { MarqueeDemoHorizontal } from "./_components/Marquee";
 import ClothesWeekHighlight from "./_components/ClothesWeekHighlight";
 import CateGories from "./_components/CateGories";
+import CurrentSellClothes from "./_components/CurrentSellClothes";
+import BestCollections from "./_components/BestCollections";
 
 export default function Home() {
   return (
@@ -13,6 +15,8 @@ export default function Home() {
      <MarqueeDemoHorizontal/>
      <ClothesWeekHighlight/>
      <CateGories/>
+     <CurrentSellClothes/>
+     <BestCollections/>
     </div>
   );
 }

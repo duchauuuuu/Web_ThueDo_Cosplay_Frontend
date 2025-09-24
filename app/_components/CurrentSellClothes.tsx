@@ -19,7 +19,7 @@ interface ProductItem {
   discount?: number
 }
 
-const ClothesWeekHighlight = () => {
+const CurrentSellClothes = () => {
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
 
   const products: ProductItem[] = [
@@ -120,7 +120,7 @@ const ClothesWeekHighlight = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900">
-          Nổi bật tuần này
+          Thuê nhiều nhất hiện tại
         </h2>
         <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600">
           <span className="text-lg font-medium">Xem tất cả</span>
@@ -231,4 +231,4 @@ const ClothesWeekHighlight = () => {
   )
 }
 
-export default ClothesWeekHighlight
+export default CurrentSellClothes
