@@ -35,7 +35,7 @@ const Header = () => {
   
   const menuItems = [
     { name: "TRANG CHỦ", href: "/" },
-    { name: "SÁCH", href: "/trang-phuc" },
+    { name: "SẢN PHẨM", href: "/trang-phuc" },
     { name: "GIỚI THIỆU", href: "/gioi-thieu" },
     { name: "FAQ", href: "/faq" }
   ]
@@ -46,7 +46,7 @@ const Header = () => {
   ]
 
   return (
-    <header className={`w-full sticky top-0 z-100 ${
+    <header className={`w-full sticky top-0 z-50 ${
       theme === 'dark' 
         ? 'bg-gray-900 border-b border-gray-800' 
         : 'bg-white border-b border-gray-200'
@@ -66,7 +66,7 @@ const Header = () => {
             </div>
             <div>
               <h1 className={`text-2xl font-bold tracking-wide ${
-                theme === 'dark' ? 'text-green-400' : 'text-[#09331a]'
+                theme === 'dark' ? 'text-green-400' : 'text-green-600 '
               }`}>
                 HAUCOSPLAY
               </h1>
@@ -117,7 +117,7 @@ const Header = () => {
                   <span className="sr-only">Toggle theme</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={`${
+              <DropdownMenuContent align="end" className={`z-[60] ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
                 <DropdownMenuItem onClick={() => setTheme("light")} className={`transition-colors duration-200 ${
@@ -161,7 +161,7 @@ const Header = () => {
                   <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={`${
+              <DropdownMenuContent align="end" className={`z-[60] ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
                 {languages.map((language) => (
@@ -207,7 +207,7 @@ const Header = () => {
                   <span className="sr-only">Tài khoản</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={`w-56 ${
+              <DropdownMenuContent align="end" className={`w-56 z-[60] ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
                 {!isLoggedIn ? (

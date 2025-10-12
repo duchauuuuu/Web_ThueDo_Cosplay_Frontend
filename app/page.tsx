@@ -7,6 +7,8 @@ import CateGories from "./_components/CateGories";
 import CurrentSellClothes from "./_components/CurrentSellClothes";
 import BestCollections from "./_components/BestCollections";
 import DeXuat from "./_components/DeXuat";
+import About from "./_components/About";
+import Footer from "./_components/Footer";
 
 export default function Home() {
   return (
@@ -19,6 +21,8 @@ export default function Home() {
      <CurrentSellClothes/>
      <BestCollections/>
      <DeXuat/>
+     <About/>
+     <Footer/>
     </div>
   );
 }

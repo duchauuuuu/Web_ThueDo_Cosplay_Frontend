@@ -160,7 +160,7 @@ const ClothesWeekHighlight = () => {
               />
               
                {/* Rating Overlay */}
-               <div className="absolute bottom-[-15px] left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white bg-opacity-95 px-3 py-1 rounded-full  z-50">
+               <div className="absolute bottom-[-15px] left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white bg-opacity-95 px-3 py-1 rounded-full  z-10">
                 <div className="flex">
                   {renderStars(product.rating)}
                 </div>
