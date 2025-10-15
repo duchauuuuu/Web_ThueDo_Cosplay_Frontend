@@ -9,6 +9,7 @@ import BestCollections from "./_components/BestCollections";
 import DeXuat from "./_components/DeXuat";
 import About from "./_components/About";
 import Footer from "./_components/Footer";
+import Carousel from "./_components/Carousel";
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
      <CurrentSellClothes/>
      <BestCollections/>
      <DeXuat/>
+     <Carousel/>
      <About/>
      <Footer/>
     </div>

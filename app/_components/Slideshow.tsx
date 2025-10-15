@@ -76,7 +76,7 @@ const Slideshow = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-[549px] overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}

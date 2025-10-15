@@ -10,7 +10,7 @@ const DeXuat = () => {
       productImage: '/img_clothes/anime/Shenhe-Cosplay-1.jpg',
       backgroundImage: '/imgDeXuat/1.jpg',
       category: 'Anime Cosplay',
-      title: 'ANIME COLLECTION',
+      title: 'Bộ sưu tập Anime',
       categoryColor: '#11b6ca'
     },
     {
@@ -18,7 +18,7 @@ const DeXuat = () => {
       productImage: '/img_clothes/coTrang/chup-anh-co-trang__19__a149e2bce3964e148f53715104946b15.jpg',
       backgroundImage: '/imgDeXuat/2.jpg',
       category: 'Cổ Trang',
-      title: 'TRADITIONAL COSTUME',
+      title: 'Bộ sưu tập cổ trang',
       categoryColor: '#fcf9c4'
     },
     {
@@ -26,7 +26,7 @@ const DeXuat = () => {
       productImage: '/img_clothes/dongPhucHocSinh/đồng phục nữ sinh hàn quốc (1)-min.jpg',
       backgroundImage: '/imgDeXuat/3.jpg',
       category: 'Đồng Phục Học Sinh',
-      title: 'SCHOOL UNIFORM',
+      title: 'Bộ sưu tập học sinh',
       categoryColor: '#86e751'
     }
   ]
