@@ -103,7 +103,7 @@ export default function ProductDetailPage() {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   
-  const { addItem } = useCart()
+  const { addItem, openMiniCart } = useCart()
   
   // Tìm sản phẩm từ fake data
   const product = FAKE_PRODUCTS.find(p => p.id === productId)
@@ -115,7 +115,7 @@ export default function ProductDetailPage() {
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Không tìm thấy sản phẩm</h1>
           <button 
             onClick={() => router.push('/product')}
-            className="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+            className="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-black transition-colors"
           >
             Quay lại danh sách sản phẩm
           </button>
@@ -136,6 +136,7 @@ export default function ProductDetailPage() {
       salePrice: product.discountPrice || product.price,
       quantity: quantity
     })
+    openMiniCart()
   }
 
   const handleBuyNow = () => {
@@ -153,7 +154,7 @@ export default function ProductDetailPage() {
 
   // Format price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+    return new Intl.NumberFormat('vi-VN').format(price) + '₫';
   };
 
   // Render stars
@@ -318,10 +319,10 @@ export default function ProductDetailPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-full transition-colors duration-300 flex items-center justify-center gap-2"
+                  className="flex-1 bg-green-600 hover:bg-black text-white font-semibold py-3 px-6 rounded-full transition-colors duration-300 flex items-center justify-center gap-2"
                 >
                   <ShoppingCart size={20} />
-                  Thêm vào giỏ hàng
+                  Thêm vào giỏ
                 </button>
                 
                 <button 

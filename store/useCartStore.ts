@@ -12,11 +12,17 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[];
+  // Mini cart state
+  isMiniCartOpen: boolean;
   // Actions
   addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  // Mini cart actions
+  openMiniCart: () => void;
+  closeMiniCart: () => void;
+  toggleMiniCart: () => void;
   // Computed values
   getSubtotal: () => number;
   getTotalItems: () => number;
@@ -29,6 +35,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      isMiniCartOpen: false,
 
       addItem: (item) => {
         const { items } = get();
@@ -83,6 +90,19 @@ export const useCartStore = create<CartStore>()(
         set({ items: [] });
       },
 
+      openMiniCart: () => {
+        set({ isMiniCartOpen: true });
+      },
+
+      closeMiniCart: () => {
+        set({ isMiniCartOpen: false });
+      },
+
+      toggleMiniCart: () => {
+        const { isMiniCartOpen } = get();
+        set({ isMiniCartOpen: !isMiniCartOpen });
+      },
+
       getSubtotal: () => {
         const { items } = get();
         return items.reduce((total, item) => {
@@ -122,10 +142,14 @@ export const useCartStore = create<CartStore>()(
 // Export hook đơn giản để sử dụng
 export const useCart = () => {
   const items = useCartStore((state) => state.items);
+  const isMiniCartOpen = useCartStore((state) => state.isMiniCartOpen);
   const addItem = useCartStore((state) => state.addItem);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
+  const openMiniCart = useCartStore((state) => state.openMiniCart);
+  const closeMiniCart = useCartStore((state) => state.closeMiniCart);
+  const toggleMiniCart = useCartStore((state) => state.toggleMiniCart);
   const getSubtotal = useCartStore((state) => state.getSubtotal);
   const getTotalItems = useCartStore((state) => state.getTotalItems);
   const getTotalSavings = useCartStore((state) => state.getTotalSavings);
@@ -149,6 +173,7 @@ export const useCart = () => {
   return {
     // State
     items,
+    isMiniCartOpen,
     subtotal,
     totalItems,
     totalSavings,
@@ -158,6 +183,11 @@ export const useCart = () => {
     removeItem,
     updateQuantity,
     clearCart,
+    
+    // Mini cart actions
+    openMiniCart,
+    closeMiniCart,
+    toggleMiniCart,
     
     // Getters
     getItemById,

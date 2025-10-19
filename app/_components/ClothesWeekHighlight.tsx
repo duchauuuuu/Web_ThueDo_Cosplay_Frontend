@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
+import { ShoppingCart } from 'lucide-react'
 import {
     Tooltip,
     TooltipContent,
@@ -220,8 +221,9 @@ const ClothesWeekHighlight = () => {
               </div>
 
               {/* Add to Cart Button - Hidden by default, shown on hover */}
-              <button className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
-                + Thêm giỏ hàng
+              <button className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2">
+                <ShoppingCart size={18} />
+                Thêm vào giỏ
               </button>
             </div>
           </div>

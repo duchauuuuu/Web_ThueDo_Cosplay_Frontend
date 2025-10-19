@@ -149,7 +149,7 @@ export default function ProductPage() {
   const pageSize = 9;
   const [page, setPage] = React.useState(1);
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, openMiniCart } = useCart();
 
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -203,7 +203,7 @@ export default function ProductPage() {
 
   // Format price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+    return new Intl.NumberFormat('vi-VN').format(price) + '₫';
   };
 
   // Render stars
@@ -244,7 +244,7 @@ export default function ProductPage() {
                     className="w-full rounded-full border border-gray-300 bg-white px-6 py-3 text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   />
                 </div>
-                <button className="rounded-full bg-green-600 p-3 text-white hover:bg-green-700 transition-colors">
+                <button className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors">
                   <Search size={20} />
                 </button>
               </div>
@@ -447,6 +447,7 @@ export default function ProductPage() {
                           salePrice: product.discountPrice || product.price,
                           quantity: 1
                         });
+                        openMiniCart();
                       }}
                       className="w-full bg-green-600 hover:bg-black text-white font-medium py-2.5 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2"
                     >

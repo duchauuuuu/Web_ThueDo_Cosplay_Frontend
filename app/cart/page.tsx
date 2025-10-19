@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Image from 'next/image'
-import { Minus, Plus, ChevronDown } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 import { useCart } from '@/store/useCartStore'
 
 const CartPage = () => {
@@ -15,8 +15,6 @@ const CartPage = () => {
     calculateItemSavings,
     addItem 
   } = useCart()
-
-  const [showCoupon, setShowCoupon] = useState(false)
 
   // Thêm sản phẩm mẫu nếu giỏ hàng trống (chỉ để demo)
   React.useEffect(() => {
@@ -158,32 +156,6 @@ const CartPage = () => {
             </div>
 
             <div className="p-6">
-              {/* Add Coupon */}
-              <div className="border-b border-gray-200 pb-4 mb-4">
-                <button
-                  onClick={() => setShowCoupon(!showCoupon)}
-                  className="flex items-center justify-between w-full text-left text-green-700 font-semibold text-lg hover:text-green-600 transition-colors"
-                >
-                  <span>Thêm mã giảm giá</span>
-                  <ChevronDown
-                    className={`transition-transform ${showCoupon ? 'rotate-180' : ''}`}
-                    size={20}
-                  />
-                </button>
-                {showCoupon && (
-                  <div className="mt-4 flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Nhập mã giảm giá"
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                    <button className="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
-                      Áp dụng
-                    </button>
-                  </div>
-                )}
-              </div>
-
               {/* Subtotal */}
               <div className="flex justify-between items-center py-4 border-b border-gray-200">
                 <span className="text-gray-700 font-semibold text-lg">Tạm tính</span>
@@ -202,7 +174,7 @@ const CartPage = () => {
         {/* Checkout Button */}
         {cartItems.length > 0 && (
           <div className="mt-8 flex justify-start">
-            <button className="bg-green-700 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-colors shadow-lg uppercase tracking-wide">
+            <button className="bg-green-700 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-black transition-colors shadow-lg uppercase tracking-wide">
               Thanh toán
             </button>
           </div>
