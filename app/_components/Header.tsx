@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus } from "lucide-react"
+import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useCart } from "@/store/useCartStore"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/navigation-menu"
 const Header = () => {
   const { theme, setTheme } = useTheme()
+  const { totalItems } = useCart()
   const [selectedLanguage, setSelectedLanguage] = useState("Tiếng Việt")
   const [isLoggedIn, setIsLoggedIn] = useState(false) // State để quản lý trạng thái đăng nhập
   const [userInfo, setUserInfo] = useState({
@@ -35,9 +37,9 @@ const Header = () => {
   
   const menuItems = [
     { name: "TRANG CHỦ", href: "/" },
-    { name: "SẢN PHẨM", href: "/trang-phuc" },
+    { name: "SẢN PHẨM", href: "/product" },
     { name: "GIỚI THIỆU", href: "/gioi-thieu" },
-    { name: "FAQ", href: "/faq" }
+    { name: "LIÊN HỆ", href: "/lien-he" }
   ]
 
   const languages = [
@@ -182,18 +184,32 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Shopping Cart */}
+            {/* Wishlist */}
             <Button variant="ghost" size="sm" className={`h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 ${
               theme === 'dark' 
                 ? 'hover:bg-green-800 hover:text-green-300 text-gray-300' 
                 : 'hover:bg-green-50 hover:text-green-700 text-gray-700'
             }`}>
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                0
-              </span>
-              <span className="sr-only">Giỏ hàng</span>
+              <Heart className="h-5 w-5" />
+              <span className="sr-only">Yêu thích</span>
             </Button>
+
+            {/* Shopping Cart */}
+            <Link href="/cart">
+              <Button variant="ghost" size="sm" className={`h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 ${
+                theme === 'dark' 
+                  ? 'hover:bg-green-800 hover:text-green-300 text-gray-300' 
+                  : 'hover:bg-green-50 hover:text-green-700 text-gray-700'
+              }`}>
+                <ShoppingCart className="h-5 w-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+                <span className="sr-only">Giỏ hàng</span>
+              </Button>
+            </Link>
 
             {/* User Account */}
             <DropdownMenu>

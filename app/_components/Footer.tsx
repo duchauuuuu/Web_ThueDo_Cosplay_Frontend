@@ -7,7 +7,7 @@ function Footer() {
     { name: "Trang Chủ", href: "#" },
     { name: "Sản phẩm", href: "#" },
     { name: "Giới thiệu", href: "#" },
-    { name: "FAQ", href: "#" }
+    { name: "LIÊN HỆ", href: "#" }
     
   ];
 

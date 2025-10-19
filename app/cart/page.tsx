@@ -3,61 +3,51 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { Minus, Plus, ChevronDown } from 'lucide-react'
-
-interface CartItem {
-  id: number
-  name: string
-  image: string
-  originalPrice: number
-  salePrice: number
-  quantity: number
-}
+import { useCart } from '@/store/useCartStore'
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: 'Bird Food Seeds',
-      image: '/img_clothes/anime/1.png',
-      originalPrice: 250000,
-      salePrice: 200000,
-      quantity: 3
-    }
-  ])
+  const { 
+    items: cartItems, 
+    subtotal, 
+    updateQuantity: updateCartQuantity, 
+    removeItem, 
+    calculateItemTotal, 
+    calculateItemSavings,
+    addItem 
+  } = useCart()
 
   const [showCoupon, setShowCoupon] = useState(false)
 
+  // Thêm sản phẩm mẫu nếu giỏ hàng trống (chỉ để demo)
+  React.useEffect(() => {
+    if (cartItems.length === 0) {
+      addItem({
+        id: 1,
+        name: 'Bird Food Seeds',
+        image: '/img_clothes/anime/1.png',
+        originalPrice: 250000,
+        salePrice: 200000,
+      })
+    }
+  }, [cartItems.length, addItem])
+
   const updateQuantity = (id: number, change: number) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    )
+    const currentItem = cartItems.find(item => item.id === id)
+    if (currentItem) {
+      const newQuantity = Math.max(1, currentItem.quantity + change)
+      updateCartQuantity(id, newQuantity)
+    }
   }
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id))
-  }
-
-  const calculateItemTotal = (item: CartItem) => {
-    return item.salePrice * item.quantity
-  }
-
-  const calculateSavings = (item: CartItem) => {
-    return (item.originalPrice - item.salePrice) * item.quantity
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + calculateItemTotal(item), 0)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      {/* Breadcrumb */}
-      <div className="bg-green-100/50 py-8">
+      {/* Cart Title */}
+      <div className="bg-gradient-to-b from-green-100/50 to-transparent py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-center text-lg font-semibold text-green-800 tracking-wider">
-            TRANG CHỦ - GIỎ HÀNG
+          <h1 
+            className="text-center font-bold text-6xl text-green-800"
+          >
+            Giỏ hàng
           </h1>
         </div>
       </div>
@@ -115,11 +105,11 @@ const CartPage = () => {
                     <div className="flex items-center gap-0 bg-green-700 rounded-full overflow-hidden">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className="px-3 py-2 text-white  hover:cursor-pointer  "
+                        className="px-3 py-2 text-white hover:cursor-pointer"
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="px-8 py-2 text-white font-semibold text-lg">
+                      <span className="w-16 py-2 text-white font-semibold text-lg text-center">
                         {item.quantity}
                       </span>
                       <button
@@ -150,7 +140,7 @@ const CartPage = () => {
                       {calculateItemTotal(item).toLocaleString('vi-VN')}₫
                     </div>
                     <div className="text-red-500 font-bold text-sm">
-                      TIẾT KIỆM {calculateSavings(item).toLocaleString('vi-VN')}₫
+                      TIẾT KIỆM {calculateItemSavings(item).toLocaleString('vi-VN')}₫
                     </div>
                   </div>
                 </div>
