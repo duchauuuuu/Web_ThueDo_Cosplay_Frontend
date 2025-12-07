@@ -49,7 +49,7 @@ const CateGories = () => {
     <div className="py-16 px-[30px]" style={{backgroundColor: '#f9f5f0'}}>
         <div className='flex justify-between items-center mb-12'>
             <h1 className="text-4xl font-bold text-gray-900">Danh mục hàng đầu</h1>
-            <button className="flex items-center gap-2 px-6 py-3 text-black bg-[#f9f5f0] hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600">
+            <button className="flex items-center gap-2 px-6 py-3 text-black bg-[#f9f5f0] hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer">
               <span className="text-lg font-medium">Xem tất cả</span>
               <svg
                 className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"

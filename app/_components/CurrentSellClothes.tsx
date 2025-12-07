@@ -3,11 +3,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { ShoppingCart } from 'lucide-react'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-  } from "@/components/ui/tooltip"
+// tooltip removed: replaced with simple buttons (title + aria-label)
 interface ProductItem {
   id: number
   title: string
@@ -123,7 +119,7 @@ const CurrentSellClothes = () => {
         <h2 className="text-4xl font-bold text-gray-900">
           Thuê nhiều nhất hiện tại
         </h2>
-        <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600">
+  <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer">
           <span className="text-lg font-medium">Xem tất cả</span>
           <svg
             className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
@@ -172,32 +168,18 @@ const CurrentSellClothes = () => {
 
               {/* Hover Actions */}
               <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Tooltip>
-                  <TooltipTrigger>
-                    <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-[#027a36] [&:hover>svg]:text-white">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Thêm vào yêu thích</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger>
-                    <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-[#027a36] [&:hover>svg]:text-white">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Xem chi tiết</p>
-                  </TooltipContent>
-                </Tooltip>
+                <button title="Thêm vào yêu thích" aria-label="Thêm vào yêu thích" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-[#027a36] [&:hover>svg]:text-white cursor-pointer">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+
+                <button title="Xem chi tiết" aria-label="Xem chi tiết" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-[#027a36] [&:hover>svg]:text-white cursor-pointer">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -221,7 +203,7 @@ const CurrentSellClothes = () => {
               </div>
 
               {/* Add to Cart Button - Hidden by default, shown on hover */}
-              <button className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2">
+              <button className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2 cursor-pointer">
                 <ShoppingCart size={18} />
                 Thêm vào giỏ
               </button>

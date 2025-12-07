@@ -156,9 +156,9 @@ export default function ProductPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("default");
 
-  // Calculate max price from products data
-  const maxPrice = Math.max(...FAKE_PRODUCTS.map(product => product.discountPrice || product.price));
-  
+  // Calculate max price from products data (rounded to integer)
+  const maxPrice = Math.round(Math.max(...FAKE_PRODUCTS.map(product => product.discountPrice || product.price)));
+
   const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
 
   // Filter products based on search, category and price
@@ -244,7 +244,7 @@ export default function ProductPage() {
                     className="w-full rounded-full border border-gray-300 bg-white px-6 py-3 text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   />
                 </div>
-                <button className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors">
+                <button className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors cursor-pointer">
                   <Search size={20} />
                 </button>
               </div>
@@ -252,7 +252,7 @@ export default function ProductPage() {
 
             {/* Categories */}
             <div className="mb-8">
-              <h2 className="mb-4 rounded-2xl bg-gray-100 px-6 py-3 text-lg font-bold text-gray-800">
+              <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
                 Danh mục trang phục
               </h2>
               <div className="space-y-2">
@@ -277,14 +277,19 @@ export default function ProductPage() {
 
             {/* Price Range */}
             <div>
-              <h2 className="mb-4 rounded-2xl bg-gray-100 px-6 py-3 text-lg font-bold text-gray-800">
+              <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
                 Khoảng giá
               </h2>
               <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold text-gray-800">{formatPrice(priceRange[0])}</span>
-                  <span className="text-sm text-gray-500">-</span>
-                  <span className="text-sm font-semibold text-gray-800">{formatPrice(priceRange[1])}</span>
+                {/* Price display: fixed columns so the dash doesn't move */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-36 text-left text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                    {formatPrice(Math.round(priceRange[0] / 50000) * 50000)}
+                  </div>
+                  <div className="w-6 text-center text-sm text-gray-500">—</div>
+                  <div className="w-36 text-right text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                    {formatPrice(Math.round(priceRange[1] / 50000) * 50000)}
+                  </div>
                 </div>
                 
                 {/* Dual Range Slider */}
@@ -296,8 +301,8 @@ export default function ProductPage() {
                   <div 
                     className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-green-600 rounded-lg"
                     style={{
-                      left: `${(priceRange[0] / maxPrice) * 100}%`,
-                      right: `${100 - (priceRange[1] / maxPrice) * 100}%`
+                      left: `${Math.round((priceRange[0] / maxPrice) * 100)}%`,
+                      right: `${Math.round(100 - (priceRange[1] / maxPrice) * 100)}%`
                     }}
                   ></div>
                   
@@ -306,10 +311,13 @@ export default function ProductPage() {
                     type="range"
                     min={0}
                     max={maxPrice}
+                    step={50000}
                     value={priceRange[0]}
                     onChange={(e) => {
-                      const newMin = Math.min(parseInt(e.target.value), priceRange[1] - 50000);
-                      setPriceRange([newMin, priceRange[1]]);
+                      const raw = Number(e.target.value)
+                      const val = Math.round(raw / 50000) * 50000
+                      const newMin = Math.min(val, Math.round(priceRange[1] / 50000) * 50000 - 50000)
+                      setPriceRange([newMin, Math.round(priceRange[1] / 50000) * 50000]);
                     }}
                     className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-green-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-green-600 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:transition-transform"
                     style={{ zIndex: priceRange[0] > maxPrice - 100000 ? 5 : 3 }}
@@ -320,10 +328,13 @@ export default function ProductPage() {
                     type="range"
                     min={0}
                     max={maxPrice}
+                    step={50000}
                     value={priceRange[1]}
                     onChange={(e) => {
-                      const newMax = Math.max(parseInt(e.target.value), priceRange[0] + 50000);
-                      setPriceRange([priceRange[0], newMax]);
+                      const raw = Number(e.target.value)
+                      const val = Math.round(raw / 50000) * 50000
+                      const newMax = Math.max(val, Math.round(priceRange[0] / 50000) * 50000 + 50000)
+                      setPriceRange([Math.round(priceRange[0] / 50000) * 50000, newMax]);
                     }}
                     className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-green-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-green-600 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:transition-transform"
                     style={{ zIndex: 4 }}
@@ -336,7 +347,7 @@ export default function ProductPage() {
           {/* Main Content */}
           <main className="lg:col-span-3">
             {/* Top Bar */}
-            <div className="mb-8 flex items-center justify-between rounded-2xl bg-gray-100 px-6 py-4">
+            <div className="mb-8 flex items-center justify-between rounded-2xl bg-[#fcf2e8] px-6 py-4">
               <span className="text-gray-800 font-medium">Hiển thị 1–{Math.min(pageSize, pagedProducts.length)} trong {total} kết quả</span>
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -401,7 +412,7 @@ export default function ProductPage() {
                           e.stopPropagation();
                           // Add to wishlist logic here
                         }}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors"
+                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors cursor-pointer"
                       >
                         <Heart size={18} />
                       </button>
@@ -410,7 +421,7 @@ export default function ProductPage() {
                           e.stopPropagation();
                           router.push(`/product/${product.id}`);
                         }}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors"
+                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors cursor-pointer"
                       >
                         <Eye size={18} />
                       </button>
@@ -449,7 +460,7 @@ export default function ProductPage() {
                         });
                         openMiniCart();
                       }}
-                      className="w-full bg-green-600 hover:bg-black text-white font-medium py-2.5 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2"
+                      className="w-full bg-green-600 hover:bg-black text-white font-medium py-2.5 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <ShoppingCart size={18} />
                       Thêm vào giỏ
@@ -463,7 +474,7 @@ export default function ProductPage() {
             {totalPages > 1 && (
               <div className="flex gap-3 justify-center">
                 <button
-                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
@@ -472,14 +483,14 @@ export default function ProductPage() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                   <button
                     key={num}
-                    className={`w-10 h-10 rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300`}
+                    className={`w-10 h-10 rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300 cursor-pointer`}
                     onClick={() => setPage(num)}
                   >
                     {num}
                   </button>
                 ))}
                 <button
-                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >

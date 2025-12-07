@@ -43,18 +43,18 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       className="group rounded-2xl bg-[#fff0f0] p-4 shadow-lg hover:shadow-xl hover:bg-[#FF6B6B] transition-all duration-300 relative cursor-pointer"
     >
       {/* Heart Icon - appears on hover */}
-      <div className="absolute top-6 left-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer">
-        <div className="w-10 h-10 bg-[#FF6B6B] rounded-full flex items-center justify-center shadow-md hover:bg-[#102937] transition-colors duration-300">
+  <div className="absolute top-6 left-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer">
+  <div className="w-10 h-10 bg-[#FF6B6B] rounded-full flex items-center justify-center shadow-md hover:bg-[#102937] transition-colors duration-300 cursor-pointer">
           <Heart size={18} className="text-white" />
         </div>
       </div>
 
       {/* Shopping Cart Icon - appears on hover */}
-      <div 
+        <div 
         className="absolute top-6 left-18 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
         onClick={handleAddToCart}
       >
-        <div className="w-10 h-10 bg-[#FF6B6B] rounded-full flex items-center justify-center shadow-md hover:bg-[#102937] transition-colors duration-300">
+        <div className="w-10 h-10 bg-[#FF6B6B] rounded-full flex items-center justify-center shadow-md hover:bg-[#102937] transition-colors duration-300 cursor-pointer">
           <ShoppingCart size={18} className="text-white" />
         </div>
       </div>

@@ -176,7 +176,7 @@ function ShimmerButton() {
   return (
     <div className="flex items-center justify-center font-sans">
       <style>{customCss}</style>
-      <button className="relative inline-flex items-center justify-center p-[1.5px] bg-gray-300 dark:bg-black rounded-full overflow-hidden group">
+      <button className="relative inline-flex items-center justify-center p-[1.5px] bg-gray-300 dark:bg-black rounded-full overflow-hidden group cursor-pointer">
         <div 
           className="absolute inset-0 transition-all duration-300"
           style={{

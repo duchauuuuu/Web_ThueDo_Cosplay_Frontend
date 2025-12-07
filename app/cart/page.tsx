@@ -2,7 +2,8 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { Minus, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useCart } from '@/store/useCartStore'
 
 const CartPage = () => {
@@ -13,21 +14,8 @@ const CartPage = () => {
     removeItem, 
     calculateItemTotal, 
     calculateItemSavings,
-    addItem 
+    clearCart 
   } = useCart()
-
-  // Thêm sản phẩm mẫu nếu giỏ hàng trống (chỉ để demo)
-  React.useEffect(() => {
-    if (cartItems.length === 0) {
-      addItem({
-        id: 1,
-        name: 'Bird Food Seeds',
-        image: '/img_clothes/anime/1.png',
-        originalPrice: 250000,
-        salePrice: 200000,
-      })
-    }
-  }, [cartItems.length, addItem])
 
   const updateQuantity = (id: number, change: number) => {
     const currentItem = cartItems.find(item => item.id === id)
@@ -39,16 +27,7 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      {/* Cart Title */}
-      <div className="bg-gradient-to-b from-green-100/50 to-transparent py-16">
-        <div className="container mx-auto px-4">
-          <h1 
-            className="text-center font-bold text-6xl text-green-800"
-          >
-            Giỏ hàng
-          </h1>
-        </div>
-      </div>
+     
 
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Cart Table */}
@@ -63,7 +42,12 @@ const CartPage = () => {
           {/* Cart Items */}
           {cartItems.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
-              <p className="text-xl">Giỏ hàng của bạn đang trống</p>
+              <p className="text-xl mb-6">Giỏ hàng của bạn đang trống</p>
+              <Link href="/product">
+                <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 cursor-pointer">
+                  Tiếp tục mua sắm
+                </button>
+              </Link>
             </div>
           ) : (
             cartItems.map(item => (
@@ -103,7 +87,7 @@ const CartPage = () => {
                     <div className="flex items-center gap-0 bg-green-700 rounded-full overflow-hidden">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className="px-3 py-2 text-white hover:cursor-pointer"
+                        className="px-3 py-2 text-white cursor-pointer"
                       >
                         <Minus size={14} />
                       </button>
@@ -112,7 +96,7 @@ const CartPage = () => {
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="px-3 py-2 text-white hover:cursor-pointer"
+                        className="px-3 py-2 text-white cursor-pointer"
                       >
                         <Plus size={14} />
                       </button>
@@ -120,7 +104,7 @@ const CartPage = () => {
                     {/* Remove Button */}
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="text-green-700 hover:text-gray-500 transition-colors text-sm font-medium relative group"
+                      className="text-green-700 hover:text-gray-500 transition-colors text-sm font-medium relative group cursor-pointer"
                     >
                       <span className="relative">
                         Xóa sản phẩm
@@ -146,6 +130,19 @@ const CartPage = () => {
             ))
           )}
         </div>
+
+        {/* Clear Cart Button */}
+        {cartItems.length > 0 && (
+          <div className="mb-8 flex justify-end">
+            <button
+              onClick={() => clearCart()}
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+            >
+              <Trash2 size={18} />
+              Xóa tất cả sản phẩm
+            </button>
+          </div>
+        )}
 
         {/* Cart Totals */}
         {cartItems.length > 0 && (
@@ -174,7 +171,7 @@ const CartPage = () => {
         {/* Checkout Button */}
         {cartItems.length > 0 && (
           <div className="mt-8 flex justify-start">
-            <button className="bg-green-700 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-black transition-colors shadow-lg uppercase tracking-wide">
+            <button className="bg-green-700 text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-black transition-colors shadow-lg uppercase tracking-wide cursor-pointer">
               Thanh toán
             </button>
           </div>
