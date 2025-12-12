@@ -2,13 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-
-interface PriceRangeFilterProps {
-  priceRange: [number, number]
-  onPriceChange: (range: [number, number]) => void
-  maxPrice?: number
-  minPrice?: number
-}
+import { PriceRangeFilterProps } from "@/types"
 
 export default function PriceRangeFilter({ priceRange, onPriceChange, maxPrice = 10000000, minPrice = 0 }: PriceRangeFilterProps) {
   const [localRange, setLocalRange] = useState<[number, number]>([Math.round(priceRange[0]), Math.round(priceRange[1])])

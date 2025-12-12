@@ -2,9 +2,9 @@
 import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useCart } from "@/store/useCartStore";
-import { Search, ChevronDown, Heart, Eye, ShoppingCart } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
+import ProductCard from "@/app/_components/ProductCard";
 
 // Fake data cho trang phục cosplay
 const FAKE_PRODUCTS = [
@@ -151,7 +151,6 @@ export default function ProductPage() {
   const router = useRouter();
   const { addItem, openMiniCart } = useCart();
 
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -204,25 +203,6 @@ export default function ProductPage() {
   // Format price
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + '₫';
-  };
-
-  // Render stars
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(<span key={i} className="text-yellow-400">★</span>);
-    }
-    if (hasHalfStar) {
-      stars.push(<span key="half" className="text-yellow-400">☆</span>);
-    }
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(<span key={`empty-${i}`} className="text-gray-300">☆</span>);
-    }
-    return stars;
   };
 
   return (
@@ -373,100 +353,35 @@ export default function ProductPage() {
             {/* Product Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
               {pagedProducts.map((product) => (
-                <div
+                <ProductCard
                   key={product.id}
-                  className="group cursor-pointer bg-white rounded-lg transition-all duration-300 overflow-hidden relative border border-gray-200"
-                  onMouseEnter={() => setHoveredProduct(product.id)}
-                  onMouseLeave={() => setHoveredProduct(null)}
-                  onClick={() => router.push(`/product/${product.id}`)}
-                >
-                  {/* Product Image */}
-                  <div className="relative aspect-[3/4] bg-gray-100">
-                    {product.discountPrice && (
-                      <div className="absolute top-2 left-2 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        -{Math.round((1 - product.discountPrice / product.price) * 100)}%
-                      </div>
-                    )}
-                    <Image
-                      src={hoveredProduct === product.id && product.hoverImage ? product.hoverImage : product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-opacity duration-300"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-
-                    {/* Rating Overlay */}
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white bg-opacity-95 px-3 py-1 rounded-full z-10">
-                      <div className="flex text-sm">
-                        {renderStars(product.rating)}
-                      </div>
-                      <span className="text-xs text-gray-700 ml-1 font-medium">
-                        ({product.reviewCount})
-                      </span>
-                    </div>
-
-                    {/* Hover Actions */}
-                    <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Add to wishlist logic here
-                        }}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <Heart size={18} />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/product/${product.id}`);
-                        }}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-green-600 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
-                      {product.name}
-                    </h3>
-
-                    {/* Price */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-lg font-bold text-green-600">
-                        {formatPrice(product.discountPrice || product.price)}
-                      </span>
-                      {product.discountPrice && (
-                        <span className="text-sm text-gray-400 line-through">
-                          {formatPrice(product.price)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addItem({ 
-                          id: parseInt(product.id), 
-                          name: product.name, 
-                          image: product.image,
-                          originalPrice: product.price,
-                          salePrice: product.discountPrice || product.price,
-                          quantity: 1
-                        });
-                        openMiniCart();
-                      }}
-                      className="w-full bg-green-600 hover:bg-black text-white font-medium py-2.5 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ShoppingCart size={18} />
-                      Thêm vào giỏ
-                    </button>
-                  </div>
-                </div>
+                  id={parseInt(product.id)}
+                  title={product.name}
+                  price={product.discountPrice || product.price}
+                  originalPrice={product.discountPrice ? product.price : undefined}
+                  rating={product.rating}
+                  reviewCount={product.reviewCount}
+                  image={product.image}
+                  hoverImage={product.hoverImage}
+                  discount={product.discountPrice ? Math.round((1 - product.discountPrice / product.price) * 100) : undefined}
+                  onAddToCart={() => {
+                    addItem({ 
+                      id: parseInt(product.id), 
+                      name: product.name, 
+                      image: product.image,
+                      originalPrice: product.price,
+                      salePrice: product.discountPrice || product.price,
+                      quantity: 1
+                    });
+                    openMiniCart();
+                  }}
+                  onFavorite={() => {
+                    console.log('Add to wishlist:', product.id);
+                  }}
+                  onView={() => {
+                    router.push(`/product/${product.id}`);
+                  }}
+                />
               ))}
             </div>
 

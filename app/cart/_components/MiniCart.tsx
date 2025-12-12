@@ -6,11 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { useCart } from '@/store/useCartStore'
-
-interface MiniCartProps {
-  isOpen: boolean
-  onClose: () => void
-}
+import { MiniCartProps } from '@/types'
 
 const MiniCart: React.FC<MiniCartProps> = ({ isOpen, onClose }) => {
   const { items, subtotal, totalItems, removeItem, clearCart } = useCart()

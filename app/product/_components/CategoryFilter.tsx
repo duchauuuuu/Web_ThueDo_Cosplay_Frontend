@@ -1,17 +1,7 @@
 "use client"
 
 import Image from "next/image"
-
-interface Category {
-  name: string
-  count: number
-}
-
-interface CategoryFilterProps {
-  categories: Category[]
-  selectedCategory: string | null
-  onSelectCategory: (category: string | null) => void
-}
+import { CategoryFilterProps } from "@/types"
 
 export default function CategoryFilter({ categories, selectedCategory, onSelectCategory }: CategoryFilterProps) {
   return (

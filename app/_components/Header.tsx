@@ -39,8 +39,8 @@ const Header = () => {
   const menuItems = [
     { name: "TRANG CHỦ", href: "/" },
     { name: "SẢN PHẨM", href: "/product" },
-    { name: "GIỚI THIỆU", href: "/gioi-thieu" },
-    { name: "LIÊN HỆ", href: "/lien-he" }
+    { name: "GIỚI THIỆU", href: "/abouts" },
+    { name: "LIÊN HỆ", href: "/contacts" }
   ]
 
   const languages = [

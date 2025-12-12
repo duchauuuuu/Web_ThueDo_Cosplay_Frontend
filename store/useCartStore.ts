@@ -1,13 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Pet } from '@/types/Pet';
 
 export interface CartItem {
-  id: number;
-  name: string;
-  image: string;
-  originalPrice: number;
-  salePrice: number;
+  pet: Pet;
   quantity: number;
+  img: string | null;
 }
 
 interface CartStore {
@@ -15,9 +13,9 @@ interface CartStore {
   // Mini cart state
   isMiniCartOpen: boolean;
   // Actions
-  addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  addItem: (item: CartItem) => void;
+  removeItem: (petId: string) => void;
+  updateQuantity: (petId: string, quantity: number) => void;
   clearCart: () => void;
   // Mini cart actions
   openMiniCart: () => void;
@@ -27,8 +25,8 @@ interface CartStore {
   getSubtotal: () => number;
   getTotalItems: () => number;
   getTotalSavings: () => number;
-  getItemById: (id: number) => CartItem | undefined;
-  isInCart: (id: number) => boolean;
+  getItemById: (petId: string) => CartItem | undefined;
+  isInCart: (petId: string) => boolean;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -39,49 +37,42 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const { items } = get();
-        const existingItem = items.find(cartItem => cartItem.id === item.id);
-        const quantity = item.quantity || 1;
+        const existingItem = items.find(cartItem => cartItem.pet.petId === item.pet.petId);
 
         if (existingItem) {
           // Nếu sản phẩm đã có trong giỏ, tăng số lượng
           set({
             items: items.map(cartItem =>
-              cartItem.id === item.id
-                ? { ...cartItem, quantity: cartItem.quantity + quantity }
+              cartItem.pet.petId === item.pet.petId
+                ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
                 : cartItem
             ),
           });
         } else {
           // Nếu chưa có, thêm mới
           set({
-            items: [
-              ...items,
-              {
-                ...item,
-                quantity,
-              },
-            ],
+            items: [...items, item],
           });
         }
       },
 
-      removeItem: (id) => {
+      removeItem: (petId) => {
         const { items } = get();
         set({
-          items: items.filter(item => item.id !== id),
+          items: items.filter(item => item.pet?.petId !== petId),
         });
       },
 
-      updateQuantity: (id, quantity) => {
+      updateQuantity: (petId, quantity) => {
         const { items } = get();
         if (quantity <= 0) {
-          get().removeItem(id);
+          get().removeItem(petId);
           return;
         }
 
         set({
           items: items.map(item =>
-            item.id === id ? { ...item, quantity } : item
+            item.pet?.petId === petId ? { ...item, quantity } : item
           ),
         });
       },
@@ -106,7 +97,9 @@ export const useCartStore = create<CartStore>()(
       getSubtotal: () => {
         const { items } = get();
         return items.reduce((total, item) => {
-          return total + (item.salePrice * item.quantity);
+          if (!item.pet) return total;
+          const price = item.pet.discountPrice || item.pet.price;
+          return total + (price * item.quantity);
         }, 0);
       },
 
@@ -118,23 +111,34 @@ export const useCartStore = create<CartStore>()(
       getTotalSavings: () => {
         const { items } = get();
         return items.reduce((total, item) => {
-          return total + ((item.originalPrice - item.salePrice) * item.quantity);
+          if (!item.pet) return total;
+          if (item.pet.discountPrice) {
+            return total + ((item.pet.price - item.pet.discountPrice) * item.quantity);
+          }
+          return total;
         }, 0);
       },
 
-      getItemById: (id) => {
+      getItemById: (petId) => {
         const { items } = get();
-        return items.find(item => item.id === id);
+        return items.find(item => item.pet?.petId === petId);
       },
 
-      isInCart: (id) => {
+      isInCart: (petId) => {
         const { items } = get();
-        return items.some(item => item.id === id);
+        return items.some(item => item.pet?.petId === petId);
       },
     }),
     {
       name: 'cart-storage', // Tên key trong localStorage
       storage: createJSONStorage(() => localStorage), // Sử dụng localStorage
+      // Thêm onRehydrateStorage để clean up dữ liệu không hợp lệ
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Lọc bỏ các items không có pet
+          state.items = state.items.filter(item => item.pet && item.pet.petId);
+        }
+      },
     }
   )
 );
@@ -163,11 +167,17 @@ export const useCart = () => {
 
   // Helper functions
   const calculateItemTotal = (item: CartItem) => {
-    return item.salePrice * item.quantity;
+    if (!item.pet) return 0;
+    const price = item.pet.discountPrice || item.pet.price;
+    return price * item.quantity;
   };
 
   const calculateItemSavings = (item: CartItem) => {
-    return (item.originalPrice - item.salePrice) * item.quantity;
+    if (!item.pet) return 0;
+    if (item.pet.discountPrice) {
+      return (item.pet.price - item.pet.discountPrice) * item.quantity;
+    }
+    return 0;
   };
 
   return {

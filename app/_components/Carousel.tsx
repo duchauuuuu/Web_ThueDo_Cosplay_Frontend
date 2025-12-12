@@ -1,17 +1,12 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { Person } from "@/types";
 
 const classNames = (
   ...classes: (string | boolean | undefined | null)[]
 ): string => {
   return classes.filter(Boolean).join(" ");
 };
-
-interface Person {
-  name: string;
-  title: string;
-  img: string;
-}
 
 const persons: Person[] = [
   {
