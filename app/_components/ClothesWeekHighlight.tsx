@@ -1,69 +1,114 @@
 "use client"
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import ProductCard from './ProductCard'
-import { ProductItem } from '@/types'
+import { ProductItem, ProductsResponse } from '@/types'
+import { useSWRFetch } from '@/app/hooks/useSWRFetch'
+import { useCartStore } from '@/store/useCartStore'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
+const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'
 
 const ClothesWeekHighlight = () => {
+  const router = useRouter()
+  const { addItem, openMiniCart } = useCartStore()
 
-  const products: ProductItem[] = [
+  // Fetch products từ BE
+  const { data, error, isLoading } = useSWRFetch<ProductsResponse>(
+    `${API_URL}/products?page=1&limit=6`,
+    undefined,
     {
-      id: 1,
-      title: "Trang phục Anime Naruto Akatsuki",
-      price: 850000,
-      rating: 4.5,
-      reviewCount: 24,
-      image: "/img_clothes/anime/Akatsuki truyện naruto (4).jpg",
-      hoverImage: "/img_clothes/anime/Akatsuki truyện naruto (5).jpg"
-    },
-    {
-      id: 2,
-      title: "Trang phục cổ tích công chúa",
-      price: 1200000,
-      rating: 4.8,
-      reviewCount: 18,
-      image: "/img_clothes/coTich/000aa6833cdc1c0415c4b11a8495510d.jpg",
-      hoverImage: "/img_clothes/coTich/4931f28604c685d4f18be7cae63cd165.jpg"
-    },
-    {
-      id: 3,
-      title: "Đồng phục học sinh Nhật Bản",
-      price: 650000,
-      rating: 4.3,
-      reviewCount: 32,
-      image: "/img_clothes/dongPhucHocSinh/1.jpg",
-      hoverImage: "/img_clothes/dongPhucHocSinh/2.jpg"
-    },
-    {
-      id: 4,
-      title: "Trang phục One Piece Boa Hancock",
-      price: 950000,
-      rating: 4.6,
-      reviewCount: 15,
-      image: "/img_clothes/anime/Boa Hancok One Piece (4)-min.jpg",
-      hoverImage: "/img_clothes/anime/Boa Hancok One Piece (6)-min (1).jpg"
-    },
-    {
-      id: 5,
-      title: "Trang phục cổ trang Việt Nam",
-      price: 1100000,
-      rating: 4.7,
-      reviewCount: 22,
-      image: "/img_clothes/coTrang/2f15ae551b1a2273725028f64955a607.jpg",
-      hoverImage: "/img_clothes/coTrang/6243269c80ef4ead4e27a2b1bb317154.jpg"
-    },
-    {
-      id: 6,
-      title: "Trang phục Robot AI",
-      price: 1400000,
-      originalPrice: 1800000,
-      discount: 24,
-      rating: 4.9,
-      reviewCount: 8,
-      image: "/img_clothes/anime/robot AI bó sát (2)-min.jpg",
-      hoverImage: "/img_clothes/anime/robot AI bó sát (3)-min.jpg"
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      dedupingInterval: 2000, // Refresh cache after 2 seconds
     }
-  ]
+  )
+
+  // Transform dữ liệu từ BE sang format của FE
+  const products: ProductItem[] = useMemo(() => {
+    if (!data?.data) return []
+
+    return data.data.map((product) => {
+      // Lấy ảnh: ưu tiên productImages, fallback là images array, cuối cùng là default
+      const sortedImages = product.productImages
+        ?.filter(img => img.isActive)
+        .sort((a, b) => a.order - b.order) || []
+      
+      const primaryImage = sortedImages[0]?.url || product.images?.[0] || DEFAULT_IMAGE
+      const hoverImage = sortedImages[1]?.url || product.images?.[1] || undefined
+
+      return {
+        id: product.id,
+        title: product.name,
+        price: Number(product.price),
+        rating: product.averageRating || 0,
+        reviewCount: product.reviewCount || 0,
+        image: primaryImage,
+        hoverImage: hoverImage,
+      }
+    })
+  }, [data])
+
+  // Event handlers
+  const handleViewProduct = (id: string | number) => {
+    router.push(`/product/${id}`)
+  }
+
+  const handleAddToCart = (id: string | number) => {
+    const product = products.find(p => p.id === id)
+    if (!product) return
+    
+    addItem({
+      id: product.id,
+      name: product.title,
+      image: product.image,
+      originalPrice: product.originalPrice || product.price,
+      salePrice: product.price,
+      quantity: 1,
+    })
+    
+    // Mở MiniCart sau khi thêm
+    openMiniCart()
+  }
+
+  const handleFavorite = (id: string | number) => {
+    // TODO: Implement favorite functionality
+    console.log('Add to favorite:', id)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-16 px-[30px] max-w-none mx-0">
+        <div className="flex justify-between items-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900">Nổi bật tuần này</h2>
+        </div>
+        <div className="flex flex-wrap gap-6 justify-center md:justify-start">
+          {[...Array(6)].map((_, i) => (
+            <div 
+              key={i} 
+              className="w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] xl:w-[calc(16.666%-20px)] h-96 bg-gray-200 animate-pulse rounded-lg"
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-16 px-[30px] max-w-none mx-0">
+        <div className="flex justify-between items-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900">Nổi bật tuần này</h2>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-red-500 text-lg">Không thể tải sản phẩm. Vui lòng thử lại sau.</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-16 px-[30px] max-w-none mx-0">
@@ -72,7 +117,7 @@ const ClothesWeekHighlight = () => {
         <h2 className="text-4xl font-bold text-gray-900">
           Nổi bật tuần này
         </h2>
-  <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer">
+        <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer">
           <span className="text-lg font-medium">Xem tất cả</span>
           <svg
             className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
@@ -87,13 +132,22 @@ const ClothesWeekHighlight = () => {
 
       {/* Products Flex */}
       <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            {...product}
-            className="w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] xl:w-[calc(16.666%-20px)]"
-          />
-        ))}
+        {products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard
+              key={product.id}
+              {...product}
+              className="w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] xl:w-[calc(16.666%-20px)]"
+              onView={handleViewProduct}
+              onAddToCart={handleAddToCart}
+              onFavorite={handleFavorite}
+            />
+          ))
+        ) : (
+          <div className="w-full text-center py-12">
+            <p className="text-gray-500 text-lg">Chưa có sản phẩm nào.</p>
+          </div>
+        )}
       </div>
     </section>
   )

@@ -87,16 +87,17 @@ const Header = () => {
                   const isActive = pathname === item.href
                   return (
                     <NavigationMenuItem key={item.name}>
-                      <Link href={item.href} legacyBehavior passHref>
-                        <NavigationMenuLink className={`group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none disabled:pointer-events-none disabled:opacity-50 ${
+                      <Link 
+                        href={item.href}
+                        className={`group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none disabled:pointer-events-none disabled:opacity-50 ${
                           isActive 
                             ? (theme === 'dark' ? 'bg-green-800 text-green-300' : 'bg-green-100 text-green-800')
                             : (theme === 'dark' 
                                 ? 'bg-gray-800 text-gray-300 hover:bg-green-800 hover:text-green-300 hover:scale-105' 
                                 : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 hover:scale-105')
-                        }`}>
-                          {item.name}
-                        </NavigationMenuLink>
+                        }`}
+                      >
+                        {item.name}
                       </Link>
                     </NavigationMenuItem>
                   )

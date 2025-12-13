@@ -1,13 +1,17 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/store/useCartStore";
 import { Search, ChevronDown } from "lucide-react";
 import ProductCard from "@/app/_components/ProductCard";
+import { useSWRFetch } from "@/app/hooks/useSWRFetch";
+import { ProductsResponse } from "@/types";
 
-// Fake data cho trang phục cosplay
-const FAKE_PRODUCTS = [
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+
+// Backup fake data (sử dụng nếu API lỗi)
+const BACKUP_PRODUCTS = [
   {
     id: "1",
     name: "Trang phục Anime Naruto Akatsuki",
@@ -146,7 +150,7 @@ const CATEGORIES = [
 ];
 
 export default function ProductPage() {
-  const pageSize = 9;
+  const pageSize = 9; // Hiển thị 9 sản phẩm mỗi trang
   const [page, setPage] = React.useState(1);
   const router = useRouter();
   const { addItem, openMiniCart } = useCart();
@@ -155,63 +159,142 @@ export default function ProductPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("default");
 
-  // Calculate max price from products data (rounded to integer)
-  const maxPrice = Math.round(Math.max(...FAKE_PRODUCTS.map(product => product.discountPrice || product.price)));
+  // Build API URL with query params
+  const apiUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    params.set('limit', pageSize.toString()); // Gửi limit=9 lên backend
+    if (selectedCategory) params.set('categoryId', selectedCategory);
+    if (searchQuery) params.set('search', searchQuery);
+    return `${API_URL}/products?${params.toString()}`;
+  }, [page, pageSize, selectedCategory, searchQuery]);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPrice]);
+  // Fetch products from API
+  const { data, error, isLoading } = useSWRFetch<ProductsResponse>(apiUrl);
 
-  // Filter products based on search, category and price
-  const filteredProducts = React.useMemo(() => {
-    let filtered = FAKE_PRODUCTS;
+  // Calculate max price from data or use default (2 triệu)
+  const maxPrice = useMemo(() => {
+    if (!data?.data || data.data.length === 0) return 2000000;
+    const prices = data.data.map(p => Number(p.price));
+    return Math.max(...prices, 2000000); // Ít nhất là 2 triệu
+  }, [data]);
 
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
+
+  // Update price range max when maxPrice changes
+  React.useEffect(() => {
+    if (priceRange[1] < maxPrice) {
+      setPriceRange([priceRange[0], maxPrice]);
     }
+  }, [maxPrice]);
 
-    // Filter by category
-    if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
+  // Transform and filter products
+  const filteredProducts = useMemo(() => {
+    if (!data?.data) return [];
+    
+    let filtered = data.data;
 
-    // Filter by price range
+    // Client-side price filter (because backend might not support it)
     filtered = filtered.filter(product => {
-      const price = product.discountPrice || product.price;
+      const price = Number(product.price);
       return price >= priceRange[0] && price <= priceRange[1];
     });
 
-    // Sort products
+    // Client-side sorting (because backend might not support all sort options)
     if (sortBy === "price-low") {
-      filtered = [...filtered].sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
+      filtered = [...filtered].sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === "price-high") {
-      filtered = [...filtered].sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
+      filtered = [...filtered].sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === "rating") {
-      filtered = [...filtered].sort((a, b) => b.rating - a.rating);
+      // Backend doesn't have rating yet, skip for now
     } else if (sortBy === "latest") {
-      filtered = [...filtered].reverse();
+      filtered = [...filtered].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     }
 
     return filtered;
-  }, [searchQuery, selectedCategory, priceRange, sortBy]);
+  }, [data, priceRange, sortBy]);
 
-  const total = filteredProducts.length;
+  const total = data?.total || 0;
   const totalPages = Math.ceil(total / pageSize);
-  const pagedProducts = filteredProducts.slice((page - 1) * pageSize, page * pageSize);
+  const pagedProducts = filteredProducts;
 
   // Format price
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + '₫';
   };
 
+  // Check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return (
+      selectedCategory !== null ||
+      searchQuery !== "" ||
+      sortBy !== "default" ||
+      priceRange[0] !== 0 ||
+      priceRange[1] !== maxPrice
+    );
+  }, [selectedCategory, searchQuery, sortBy, priceRange, maxPrice]);
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSelectedCategory(null);
+    setSearchQuery("");
+    setSortBy("default");
+    setPriceRange([0, maxPrice]);
+    setPage(1);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - use backup data
+  const productsToDisplay = error ? BACKUP_PRODUCTS : pagedProducts;
+
   return (
     <div className="min-h-screen bg-white">
       {/* Main Content Section */}
       <div className="mx-auto max-w-7xl px-6 py-8">
+        {error && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800">⚠️ Không thể kết nối server. Hiển thị dữ liệu mẫu.</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Sidebar Filters */}
           <aside className="lg:col-span-1">
+            {/* Clear All Filters Button */}
+            {hasActiveFilters && (
+              <div className="mb-6">
+                <button
+                  onClick={handleClearFilters}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 rounded-lg transition-all duration-300 font-medium group"
+                >
+                  <svg 
+                    className="w-5 h-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Xóa tất cả bộ lọc</span>
+                </button>
+              </div>
+            )}
+
             {/* Search Bar */}
             <div className="mb-8">
               <div className="flex gap-3">
@@ -352,7 +435,46 @@ export default function ProductPage() {
 
             {/* Product Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-              {pagedProducts.map((product) => (
+              {productsToDisplay.length > 0 ? (
+                productsToDisplay.map((product) => {
+                  // Transform backend data to ProductCard format
+                  const isBackendData = 'categoryId' in product;
+                  
+                  if (isBackendData) {
+                    // Backend product
+                    const backendProduct = product as any;
+                    const sortedImages = backendProduct.productImages
+                      ?.filter((img: any) => img.isActive)
+                      .sort((a: any, b: any) => a.order - b.order) || [];
+                    
+                    return (
+                      <ProductCard
+                        key={backendProduct.id}
+                        id={backendProduct.id}
+                        title={backendProduct.name}
+                        price={Number(backendProduct.price)}
+                        rating={4.5}
+                        reviewCount={0}
+                        image={sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'}
+                        hoverImage={sortedImages[1]?.url}
+                        onAddToCart={() => {
+                          addItem({
+                            id: parseInt(backendProduct.id) || 0,
+                            name: backendProduct.name,
+                            image: sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg',
+                            originalPrice: Number(backendProduct.price),
+                            salePrice: Number(backendProduct.price),
+                            quantity: 1
+                          });
+                          openMiniCart();
+                        }}
+                        onView={() => router.push(`/product/${backendProduct.id}`)}
+                      />
+                    );
+                  }
+                  
+                  // Backup fake product
+                  return (
                 <ProductCard
                   key={product.id}
                   id={parseInt(product.id)}
@@ -382,7 +504,13 @@ export default function ProductPage() {
                     router.push(`/product/${product.id}`);
                   }}
                 />
-              ))}
+              );
+                })
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào.</p>
+                </div>
+              )}
             </div>
 
             {/* Pagination */}

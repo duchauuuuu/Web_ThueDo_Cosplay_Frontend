@@ -49,6 +49,7 @@ export function ProductCard({
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => onView?.(id)}
     >
       <div className="relative aspect-[3/4] bg-gray-100">
         {discount ? (
