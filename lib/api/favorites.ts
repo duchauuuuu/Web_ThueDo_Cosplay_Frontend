@@ -9,6 +9,7 @@ export interface FavoriteProduct {
     id: string;
     name: string;
     price: number;
+    categoryId?: string;
     images?: string[];
     productImages?: Array<{
       id: string;
@@ -16,6 +17,10 @@ export interface FavoriteProduct {
       order: number;
       isActive: boolean;
     }>;
+    category?: {
+      id: string;
+      name: string;
+    };
   };
 }
 

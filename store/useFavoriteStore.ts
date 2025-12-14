@@ -5,7 +5,10 @@ interface Product {
   id: string;
   name: string;
   image: string;
+  hoverImage?: string;
   price: number;
+  categoryId?: string;
+  createdAt?: string;
 }
 
 interface FavoriteState {

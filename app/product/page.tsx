@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useFavoriteStore } from "@/store/useFavoriteStore";
 import { Search, ChevronDown } from "lucide-react";
 import ProductCard from "@/app/_components/ProductCard";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
@@ -20,7 +21,8 @@ export default function ProductPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addItem, openMiniCart } = useCart();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
+  const { addFavorite, removeFavorite, isFavorite } = useFavoriteStore();
   const { success, error: showError, ToastContainer } = useToast();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -54,15 +56,45 @@ export default function ProductPage() {
   };
 
   // Handle favorite
-  const handleFavorite = (productId: string | number) => {
+  const handleFavorite = async (productId: string | number, productData?: any) => {
     if (!isAuthenticated) {
       showError("Chưa đăng nhập", "Vui lòng đăng nhập để thêm vào danh sách yêu thích");
       setTimeout(() => {
         router.push('/login');
       }, 1500);
-    } else {
-      // TODO: Call API to add to favorites
-      success("Đã thêm vào yêu thích", "Sản phẩm đã được thêm vào danh sách yêu thích của bạn");
+      return;
+    }
+
+    try {
+      const { favoritesAPI } = await import("@/lib/api/favorites");
+      const result = await favoritesAPI.toggle(productId.toString(), token!);
+
+      if (result.action === 'Added') {
+        // Add to local store
+        if (productData) {
+          const sortedImages = productData.productImages
+            ?.filter((img: any) => img.isActive)
+            .sort((a: any, b: any) => a.order - b.order) || [];
+          
+          addFavorite({
+            id: productData.id,
+            name: productData.name,
+            image: sortedImages[0]?.url || DEFAULT_IMAGE,
+            hoverImage: sortedImages[1]?.url || sortedImages[0]?.url || DEFAULT_IMAGE,
+            price: Number(productData.price),
+            categoryId: productData.categoryId,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        success("Đã thêm vào yêu thích", "Sản phẩm đã được thêm vào danh sách yêu thích của bạn");
+      } else {
+        // Remove from local store
+        removeFavorite(productId.toString());
+        success("Đã xóa khỏi yêu thích", "Sản phẩm đã được xóa khỏi danh sách yêu thích");
+      }
+    } catch (error: any) {
+      console.error("Favorite error:", error);
+      showError("Lỗi", error.message || "Không thể thực hiện thao tác");
     }
   };
 
@@ -240,7 +272,7 @@ export default function ProductPage() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Sidebar Filters */}
-          <aside className="lg:col-span-1">
+          <aside className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
             {/* Search Bar */}
             <div className="mb-8">
               <div className="flex gap-3">
@@ -444,7 +476,7 @@ export default function ProductPage() {
                           });
                           openMiniCart();
                         }}
-                        onFavorite={() => handleFavorite(backendProduct.id)}
+                        onFavorite={() => handleFavorite(backendProduct.id, backendProduct)}
                         onView={() => router.push(`/product/${backendProduct.id}`)}
                       />
                     );

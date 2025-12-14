@@ -6,6 +6,9 @@ import ProductCard from './ProductCard'
 import { ProductItem, ProductsResponse } from '@/types'
 import { useSWRFetch } from '@/app/hooks/useSWRFetch'
 import { useCartStore } from '@/store/useCartStore'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useFavoriteStore } from '@/store/useFavoriteStore'
+import { useToast } from '@/app/hooks/useToast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'
@@ -13,6 +16,9 @@ const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'
 const CurrentSellClothes = () => {
   const router = useRouter()
   const { addItem, openMiniCart } = useCartStore()
+  const { isAuthenticated, token } = useAuthStore()
+  const { addFavorite, removeFavorite } = useFavoriteStore()
+  const { success, error: showError, ToastContainer } = useToast()
 
   // Fetch products từ BE - Sản phẩm được đặt hàng nhiều nhất trong tuần
   const { data, error, isLoading } = useSWRFetch<ProductsResponse>(
@@ -104,13 +110,44 @@ const CurrentSellClothes = () => {
     openMiniCart()
   }
 
-  const handleFavorite = (id: string | number) => {
-    // TODO: Implement favorite functionality
-    console.log('Add to favorite:', id)
+  const handleFavorite = async (id: string | number) => {
+    if (!isAuthenticated) {
+      showError("Chưa đăng nhập", "Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+      return;
+    }
+
+    try {
+      const { favoritesAPI } = await import("@/lib/api/favorites");
+      const result = await favoritesAPI.toggle(id.toString(), token!);
+
+      if (result.action === 'Added') {
+        const product = products.find(p => p.id === id);
+        if (product) {
+          addFavorite({
+            id: product.id.toString(),
+            name: product.title,
+            image: product.image,
+            price: product.price,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        success("Đã thêm vào yêu thích");
+      } else {
+        removeFavorite(id.toString());
+        success("Đã xóa khỏi yêu thích");
+      }
+    } catch (error: any) {
+      console.error("Favorite error:", error);
+      showError("Lỗi", error.message || "Không thể thực hiện thao tác");
+    }
   }
 
   return (
     <section className="py-16 px-[30px] max-w-none mx-0">
+      <ToastContainer />
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900">
