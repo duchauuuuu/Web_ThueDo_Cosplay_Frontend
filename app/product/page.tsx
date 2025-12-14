@@ -3,6 +3,7 @@ import React, { useMemo } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/store/useCartStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Search, ChevronDown } from "lucide-react";
 import ProductCard from "@/app/_components/ProductCard";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
@@ -19,8 +20,8 @@ export default function ProductPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addItem, openMiniCart } = useCart();
+  const { isAuthenticated } = useAuthStore();
   const { success, error: showError, ToastContainer } = useToast();
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // TODO: Get from auth store
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,7 +55,7 @@ export default function ProductPage() {
 
   // Handle favorite
   const handleFavorite = (productId: string | number) => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       showError("Chưa đăng nhập", "Vui lòng đăng nhập để thêm vào danh sách yêu thích");
       setTimeout(() => {
         router.push('/login');

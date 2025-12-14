@@ -12,7 +12,6 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
   });
   const [errors, setErrors] = useState({
     email: "",
@@ -56,15 +55,26 @@ export default function LoginPage() {
       return;
     }
     
-    // TODO: Call API login
+    // Call API login
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Login data:", formData);
-      // router.push('/');
-    } catch (error) {
+      const { authAPI } = await import("@/lib/api/auth");
+      const { useAuthStore } = await import("@/store/useAuthStore");
+      
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Save auth data (user, accessToken, refreshToken)
+      useAuthStore.getState().setAuth(response.user, response.accessToken, response.refreshToken);
+
+      // Redirect to home page
+      router.push('/');
+    } catch (error: any) {
       console.error("Login error:", error);
+      const errorMessage = error.message || "Đăng nhập thất bại. Vui lòng thử lại.";
+      setErrors({ ...errors, password: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +132,7 @@ export default function LoginPage() {
             {/* Email field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email
+                Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -148,7 +158,7 @@ export default function LoginPage() {
             {/* Password field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mật khẩu
+                Mật khẩu <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -182,19 +192,8 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Remember me & Forgot password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={(e) =>
-                    setFormData({ ...formData, rememberMe: e.target.checked })
-                  }
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Ghi nhớ đăng nhập</span>
-              </label>
+            {/* Forgot password */}
+            <div className="text-right">
               <Link
                 href="/forgot-password"
                 className="text-sm text-green-600 hover:text-green-700 hover:underline font-medium"

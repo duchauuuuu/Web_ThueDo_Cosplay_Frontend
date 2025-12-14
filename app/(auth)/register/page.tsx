@@ -112,15 +112,30 @@ export default function RegisterPage() {
       return;
     }
     
-    // TODO: Call API register
+    // Call API register
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Register data:", formData);
-      // router.push('/login');
-    } catch (error) {
+      const { authAPI } = await import("@/lib/api/auth");
+      
+      await authAPI.register({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        phone: formData.phone,
+      });
+
+      // Redirect to login page
+      router.push('/login');
+    } catch (error: any) {
       console.error("Register error:", error);
+      const errorMessage = error.message || "Đăng ký thất bại. Vui lòng thử lại.";
+      
+      // Check if email already exists
+      if (errorMessage.includes("Email") || errorMessage.includes("email")) {
+        setErrors({ ...errors, email: "Email đã được sử dụng" });
+      } else {
+        setErrors({ ...errors, email: errorMessage });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +174,7 @@ export default function RegisterPage() {
             {/* Full name field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Họ và tên
+                Họ và tên <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -185,7 +200,7 @@ export default function RegisterPage() {
             {/* Email field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email
+                Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -211,7 +226,7 @@ export default function RegisterPage() {
             {/* Phone field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Số điện thoại
+                Số điện thoại <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -237,7 +252,7 @@ export default function RegisterPage() {
             {/* Password field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mật khẩu
+                Mật khẩu <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -274,7 +289,7 @@ export default function RegisterPage() {
             {/* Confirm password field */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Xác nhận mật khẩu
+                Xác nhận mật khẩu <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />

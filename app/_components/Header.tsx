@@ -7,6 +7,8 @@ import { usePathname, useRouter } from "next/navigation"
 import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useCart } from "@/store/useCartStore"
+import { useAuthStore } from "@/store/useAuthStore"
+import { useFavoriteStore } from "@/store/useFavoriteStore"
 import { useToast } from "@/app/hooks/useToast"
 import MiniCart from "../cart/_components/MiniCart"
 import { Button } from "@/components/ui/button"
@@ -29,19 +31,16 @@ import {
 const Header = () => {
   const { theme, setTheme } = useTheme()
   const { totalItems, isMiniCartOpen, closeMiniCart } = useCart()
+  const { totalFavorites } = useFavoriteStore()
+  const { user, isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
   const { error, ToastContainer } = useToast()
   const [selectedLanguage, setSelectedLanguage] = useState("Tiếng Việt")
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // State để quản lý trạng thái đăng nhập
-  const [userInfo, setUserInfo] = useState({
-    name: "Nguyễn Văn A",
-    email: "user@example.com"
-  }) // Thông tin user demo
   const pathname = usePathname() // Lấy đường dẫn hiện tại
   
   // Handle wishlist click
   const handleWishlistClick = () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       error("Chưa đăng nhập", "Vui lòng đăng nhập để xem danh sách yêu thích")
       setTimeout(() => {
         router.push('/login')
@@ -49,6 +48,12 @@ const Header = () => {
     } else {
       router.push('/wishlist')
     }
+  }
+  
+  // Handle logout
+  const handleLogout = () => {
+    logout()
+    router.push('/')
   }
   
   const menuItems = [
@@ -213,6 +218,11 @@ const Header = () => {
               }`}
             >
               <Heart className="h-5 w-5" />
+              {totalFavorites > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {totalFavorites > 99 ? '99+' : totalFavorites}
+                </span>
+              )}
               <span className="sr-only">Yêu thích</span>
             </Button>
 
@@ -252,7 +262,7 @@ const Header = () => {
               <DropdownMenuContent align="end" className={`w-56 z-[60] ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
-                {!isLoggedIn ? (
+                {!isAuthenticated ? (
                   // Khi chưa đăng nhập
                   <>
                     <DropdownMenuItem 
@@ -288,12 +298,12 @@ const Header = () => {
                       <div className={`font-medium text-sm ${
                         theme === 'dark' ? 'text-gray-200' : 'text-gray-900'
                       }`}>
-                        {userInfo.name}
+                        {user?.fullName || "User"}
                       </div>
                       <div className={`text-xs ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                       }`}>
-                        {userInfo.email}
+                        {user?.email || ""}
                       </div>
                     </div>
                     
@@ -336,7 +346,7 @@ const Header = () => {
                           ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
                           : 'text-red-600 hover:bg-red-50 hover:text-red-700'
                       }`}
-                      onClick={() => setIsLoggedIn(false)}
+                      onClick={handleLogout}
                     >
                       <span className="mr-2">🚪</span>
                       <span>Đăng xuất</span>
