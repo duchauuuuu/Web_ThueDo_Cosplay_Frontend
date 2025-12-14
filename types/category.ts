@@ -1,23 +1,17 @@
-// Category entity types
-export interface ProductCategory {
+// Category types
+import { Product } from './product';
+
+export interface Category {
   id: string;
   name: string;
   description?: string;
   image?: string;
   isActive: boolean;
+  products?: Product[];
   createdAt: string;
   updatedAt: string;
 }
 
-// Filter category types
-export interface Category {
-  name: string;
-  count: number;
+export interface CategoryWithCount extends Category {
+  productCount?: number;
 }
-
-export interface CategoryFilterProps {
-  categories: Category[];
-  selectedCategory: string | null;
-  onSelectCategory: (category: string | null) => void;
-}
-

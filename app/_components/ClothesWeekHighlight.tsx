@@ -14,14 +14,14 @@ const ClothesWeekHighlight = () => {
   const router = useRouter()
   const { addItem, openMiniCart } = useCartStore()
 
-  // Fetch products từ BE
+  // Fetch products từ BE - Sản phẩm được yêu thích nhiều nhất
   const { data, error, isLoading } = useSWRFetch<ProductsResponse>(
-    `${API_URL}/products?page=1&limit=6`,
+    `${API_URL}/products?page=1&limit=6&sortBy=mostFavorited`,
     undefined,
     {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      dedupingInterval: 2000, // Refresh cache after 2 seconds
+      dedupingInterval: 2000,
     }
   )
 
@@ -82,7 +82,7 @@ const ClothesWeekHighlight = () => {
     return (
       <section className="py-16 px-[30px] max-w-none mx-0">
         <div className="flex justify-between items-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900">Nổi bật tuần này</h2>
+          <h2 className="text-4xl font-bold text-gray-900">Yêu thích nhiều nhất tuần</h2>
         </div>
         <div className="flex flex-wrap gap-6 justify-center md:justify-start">
           {[...Array(6)].map((_, i) => (
@@ -101,7 +101,7 @@ const ClothesWeekHighlight = () => {
     return (
       <section className="py-16 px-[30px] max-w-none mx-0">
         <div className="flex justify-between items-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900">Nổi bật tuần này</h2>
+          <h2 className="text-4xl font-bold text-gray-900">Yêu thích nhiều nhất tuần</h2>
         </div>
         <div className="text-center py-12">
           <p className="text-red-500 text-lg">Không thể tải sản phẩm. Vui lòng thử lại sau.</p>
@@ -115,9 +115,12 @@ const ClothesWeekHighlight = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900">
-          Nổi bật tuần này
+          Yêu thích nhiều nhất tuần
         </h2>
-        <button className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer">
+        <button 
+          onClick={() => router.push('/product?sortBy=mostFavorited')}
+          className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer"
+        >
           <span className="text-lg font-medium">Xem tất cả</span>
           <svg
             className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"

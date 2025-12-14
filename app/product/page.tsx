@@ -1,176 +1,67 @@
 "use client";
 import React, { useMemo } from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/store/useCartStore";
 import { Search, ChevronDown } from "lucide-react";
 import ProductCard from "@/app/_components/ProductCard";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
-import { ProductsResponse } from "@/types";
+import { ProductsResponse, Category } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
-// Backup fake data (sử dụng nếu API lỗi)
-const BACKUP_PRODUCTS = [
-  {
-    id: "1",
-    name: "Trang phục Anime Naruto Akatsuki",
-    price: 850000,
-    discountPrice: null,
-    category: "Anime",
-    size: "M",
-    condition: "Mới 95%",
-    rating: 4.5,
-    reviewCount: 24,
-    image: "/img_clothes/anime/Akatsuki truyện naruto (4).jpg",
-    hoverImage: "/img_clothes/anime/Akatsuki truyền naruto (5).jpg",
-    description: "Trang phục Akatsuki chất lượng cao, chi tiết hoàn thiện"
-  },
-  {
-    id: "2",
-    name: "Trang phục cổ tích công chúa",
-    price: 1200000,
-    discountPrice: null,
-    category: "Cổ tích",
-    size: "L",
-    condition: "Mới 100%",
-    rating: 4.8,
-    reviewCount: 18,
-    image: "/img_clothes/coTich/000aa6833cdc1c0415c4b11a8495510d.jpg",
-    hoverImage: "/img_clothes/coTich/4931f28604c685d4f18be7cae63cd165.jpg",
-    description: "Váy công chúa sang trọng, phù hợp cho sự kiện"
-  },
-  {
-    id: "3",
-    name: "Đồng phục học sinh Nhật Bản",
-    price: 650000,
-    discountPrice: null,
-    category: "Đồng phục",
-    size: "S",
-    condition: "Mới 90%",
-    rating: 4.3,
-    reviewCount: 32,
-    image: "/img_clothes/dongPhucHocSinh/1.jpg",
-    hoverImage: "/img_clothes/dongPhucHocSinh/2.jpg",
-    description: "Đồng phục học sinh Nhật kiểu dáng chuẩn"
-  },
-  {
-    id: "4",
-    name: "Trang phục One Piece Boa Hancock",
-    price: 950000,
-    discountPrice: 750000,
-    category: "Anime",
-    size: "M",
-    condition: "Mới 95%",
-    rating: 4.6,
-    reviewCount: 15,
-    image: "/img_clothes/anime/Boa Hancok One Piece (4)-min.jpg",
-    hoverImage: "/img_clothes/anime/Boa Hancok One Piece (6)-min (1).jpg",
-    description: "Cosplay Boa Hancock đầy đủ phụ kiện"
-  },
-  {
-    id: "5",
-    name: "Trang phục cổ trang Việt Nam",
-    price: 1100000,
-    discountPrice: null,
-    category: "Cổ trang",
-    size: "M",
-    condition: "Mới 100%",
-    rating: 4.7,
-    reviewCount: 22,
-    image: "/img_clothes/coTrang/2f15ae551b1a2273725028f64955a607.jpg",
-    hoverImage: "/img_clothes/coTrang/6243269c80ef4ead4e27a2b1bb317154.jpg",
-    description: "Trang phục cổ trang Việt Nam truyền thống"
-  },
-  {
-    id: "6",
-    name: "Trang phục Robot AI",
-    price: 1800000,
-    discountPrice: 1400000,
-    category: "Khoa học viễn tưởng",
-    size: "L",
-    condition: "Mới 100%",
-    rating: 4.9,
-    reviewCount: 8,
-    image: "/img_clothes/anime/robot AI bó sát (2)-min.jpg",
-    hoverImage: "/img_clothes/anime/robot AI bó sát (3)-min.jpg",
-    description: "Trang phục Robot AI cao cấp, đèn LED"
-  },
-  {
-    id: "7",
-    name: "Kimono Nhật Bản truyền thống",
-    price: 980000,
-    discountPrice: null,
-    category: "Cổ trang",
-    size: "M",
-    condition: "Mới 95%",
-    rating: 4.4,
-    reviewCount: 19,
-    image: "/img_clothes/anime/Akatsuki truyện naruto (4).jpg",
-    hoverImage: "/img_clothes/anime/Akatsuki truyền naruto (5).jpg",
-    description: "Kimono Nhật Bản chất liệu cao cấp"
-  },
-  {
-    id: "8",
-    name: "Trang phục siêu anh hùng Marvel",
-    price: 1350000,
-    discountPrice: 1100000,
-    category: "Siêu anh hùng",
-    size: "L",
-    condition: "Mới 90%",
-    rating: 4.7,
-    reviewCount: 27,
-    image: "/img_clothes/coTich/000aa6833cdc1c0415c4b11a8495510d.jpg",
-    hoverImage: "/img_clothes/coTich/4931f28604c685d4f18be7cae63cd165.jpg",
-    description: "Bộ đồ siêu anh hùng Marvel chi tiết sắc nét"
-  },
-  {
-    id: "9",
-    name: "Hanbok Hàn Quốc",
-    price: 890000,
-    discountPrice: null,
-    category: "Cổ trang",
-    size: "S",
-    condition: "Mới 100%",
-    rating: 4.6,
-    reviewCount: 14,
-    image: "/img_clothes/dongPhucHocSinh/1.jpg",
-    hoverImage: "/img_clothes/dongPhucHocSinh/2.jpg",
-    description: "Hanbok Hàn Quốc đẹp, màu sắc tươi sáng"
-  }
-];
-
-const CATEGORIES = [
-  { name: "Anime", count: 3 },
-  { name: "Cổ tích", count: 2 },
-  { name: "Đồng phục", count: 1 },
-  { name: "Cổ trang", count: 3 },
-  { name: "Siêu anh hùng", count: 1 },
-  { name: "Khoa học viễn tưởng", count: 1 },
-];
+const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg';
 
 export default function ProductPage() {
-  const pageSize = 9; // Hiển thị 9 sản phẩm mỗi trang
+  const pageSize = 9;
   const [page, setPage] = React.useState(1);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addItem, openMiniCart } = useCart();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState("default");
+
+  // Đọc sortBy từ URL khi component mount
+  useEffect(() => {
+    const sortByParam = searchParams.get('sortBy');
+    if (sortByParam) {
+      setSortBy(sortByParam);
+    }
+  }, [searchParams]);
+
+  // Debounce search input
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Reset page to 1 when filters change
+  React.useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, searchQuery]);
 
   // Build API URL with query params
   const apiUrl = useMemo(() => {
     const params = new URLSearchParams();
     params.set('page', page.toString());
-    params.set('limit', pageSize.toString()); // Gửi limit=9 lên backend
+    params.set('limit', pageSize.toString());
     if (selectedCategory) params.set('categoryId', selectedCategory);
     if (searchQuery) params.set('search', searchQuery);
+    if (sortBy && sortBy !== 'default') params.set('sortBy', sortBy);
     return `${API_URL}/products?${params.toString()}`;
-  }, [page, pageSize, selectedCategory, searchQuery]);
+  }, [page, pageSize, selectedCategory, searchQuery, sortBy]);
 
   // Fetch products from API
   const { data, error, isLoading } = useSWRFetch<ProductsResponse>(apiUrl);
+
+  // Fetch categories from API
+  const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWRFetch<Category[]>(`${API_URL}/categories`);
 
   // Calculate max price from data or use default (2 triệu)
   const maxPrice = useMemo(() => {
@@ -220,6 +111,20 @@ export default function ProductPage() {
   const totalPages = Math.ceil(total / pageSize);
   const pagedProducts = filteredProducts;
 
+  // Transform categories data with product count
+  const categories = useMemo(() => {
+    if (!categoriesData || categoriesData.length === 0) return [];
+    
+    // Chỉ hiển thị categories có ít nhất 1 sản phẩm active
+    return categoriesData
+      .map(category => ({
+        id: category.id,
+        name: category.name,
+        count: category.products?.filter(p => p.isActive).length || 0
+      }))
+      .filter(category => category.count > 0); // Ẩn categories không có sản phẩm
+  }, [categoriesData]);
+
   // Format price
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN').format(price) + '₫';
@@ -240,6 +145,7 @@ export default function ProductPage() {
   const handleClearFilters = () => {
     setSelectedCategory(null);
     setSearchQuery("");
+    setSearchInput(""); // Also clear search input
     setSortBy("default");
     setPriceRange([0, maxPrice]);
     setPage(1);
@@ -260,41 +166,55 @@ export default function ProductPage() {
     );
   }
 
-  // Error state - use backup data
-  const productsToDisplay = error ? BACKUP_PRODUCTS : pagedProducts;
+  // Error state - show error message but don't use backup data
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+            <p className="text-red-800 text-lg font-semibold">⚠️ Không thể kết nối đến server</p>
+            <p className="text-red-600 mt-2">Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+            >
+              Tải lại trang
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No products found
+  if (!pagedProducts || pagedProducts.length === 0) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+            <p className="text-yellow-800 text-lg font-semibold">Không tìm thấy sản phẩm nào</p>
+            <p className="text-yellow-600 mt-2">Thử thay đổi bộ lọc hoặc tìm kiếm khác.</p>
+            {hasActiveFilters && (
+              <button 
+                onClick={handleClearFilters} 
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-black transition-colors"
+              >
+                Xóa tất cả bộ lọc
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       {/* Main Content Section */}
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {error && (
-          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">⚠️ Không thể kết nối server. Hiển thị dữ liệu mẫu.</p>
-          </div>
-        )}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Sidebar Filters */}
           <aside className="lg:col-span-1">
-            {/* Clear All Filters Button */}
-            {hasActiveFilters && (
-              <div className="mb-6">
-                <button
-                  onClick={handleClearFilters}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 rounded-lg transition-all duration-300 font-medium group"
-                >
-                  <svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span>Xóa tất cả bộ lọc</span>
-                </button>
-              </div>
-            )}
-
             {/* Search Bar */}
             <div className="mb-8">
               <div className="flex gap-3">
@@ -302,10 +222,18 @@ export default function ProductPage() {
                   <input
                     type="text"
                     placeholder="Tìm kiếm trang phục..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="w-full rounded-full border border-gray-300 bg-white px-6 py-3 text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   />
+                  {searchInput && (
+                    <button
+                      onClick={() => setSearchInput("")}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
                 <button className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors cursor-pointer">
                   <Search size={20} />
@@ -318,24 +246,36 @@ export default function ProductPage() {
               <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
                 Danh mục trang phục
               </h2>
-              <div className="space-y-2">
-                {CATEGORIES.map((category) => (
-                  <button
-                    key={category.name}
-                    onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
-                    className={`group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
-                      selectedCategory === category.name
-                        ? "bg-green-600 text-white"
-                        : "bg-white text-gray-700 hover:bg-black hover:text-white border border-gray-200"
-                    }`}
-                  >
-                    <span className="font-medium">{category.name}</span>
-                    <span className={`text-sm transition-colors ${selectedCategory === category.name ? "text-white" : "text-gray-500 group-hover:text-white"}`}>
-                      ({category.count})
-                    </span>
-                  </button>
-                ))}
-              </div>
+              {categoriesLoading ? (
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-12 bg-gray-200 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              ) : categoriesError ? (
+                <div className="text-red-500 text-sm p-4">
+                  Không thể tải danh mục
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                      className={`group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+                        selectedCategory === category.id
+                          ? "bg-green-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-black hover:text-white border border-gray-200"
+                      }`}
+                    >
+                      <span className="font-medium">{category.name}</span>
+                      <span className={`text-sm transition-colors ${selectedCategory === category.id ? "text-white" : "text-gray-500 group-hover:text-white"}`}>
+                        ({category.count})
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Price Range */}
@@ -405,6 +345,14 @@ export default function ProductPage() {
                 </div>
               </div>
             </div>
+
+            {/* Clear All Filters Button */}
+            <button 
+              onClick={handleClearFilters}
+              className="w-full rounded-full bg-green-600 px-6 py-3 font-semibold text-white hover:bg-black hover:text-white transition-colors cursor-pointer mt-[10px]"
+            >
+              Xóa tất cả lọc
+            </button>
           </aside>
 
           {/* Main Content */}
@@ -420,6 +368,8 @@ export default function ProductPage() {
                     className="appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-8 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600"
                   >
                     <option value="default">Sắp xếp mặc định</option>
+                    <option value="mostFavorited">Yêu thích nhiều nhất tuần</option>
+                    <option value="mostOrdered">Thuê nhiều nhất tuần</option>
                     <option value="price-low">Giá: Thấp đến cao</option>
                     <option value="price-high">Giá: Cao đến thấp</option>
                     <option value="rating">Đánh giá cao nhất</option>
@@ -435,14 +385,7 @@ export default function ProductPage() {
 
             {/* Product Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-              {productsToDisplay.length > 0 ? (
-                productsToDisplay.map((product) => {
-                  // Transform backend data to ProductCard format
-                  const isBackendData = 'categoryId' in product;
-                  
-                  if (isBackendData) {
-                    // Backend product
-                    const backendProduct = product as any;
+              {pagedProducts.map((backendProduct) => {
                     const sortedImages = backendProduct.productImages
                       ?.filter((img: any) => img.isActive)
                       .sort((a: any, b: any) => a.order - b.order) || [];
@@ -453,15 +396,15 @@ export default function ProductPage() {
                         id={backendProduct.id}
                         title={backendProduct.name}
                         price={Number(backendProduct.price)}
-                        rating={4.5}
-                        reviewCount={0}
-                        image={sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'}
+                        rating={backendProduct.averageRating || 0}
+                        reviewCount={backendProduct.reviewCount || 0}
+                        image={sortedImages[0]?.url || DEFAULT_IMAGE}
                         hoverImage={sortedImages[1]?.url}
                         onAddToCart={() => {
                           addItem({
                             id: parseInt(backendProduct.id) || 0,
                             name: backendProduct.name,
-                            image: sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg',
+                            image: sortedImages[0]?.url || DEFAULT_IMAGE,
                             originalPrice: Number(backendProduct.price),
                             salePrice: Number(backendProduct.price),
                             quantity: 1
@@ -471,46 +414,7 @@ export default function ProductPage() {
                         onView={() => router.push(`/product/${backendProduct.id}`)}
                       />
                     );
-                  }
-                  
-                  // Backup fake product
-                  return (
-                <ProductCard
-                  key={product.id}
-                  id={parseInt(product.id)}
-                  title={product.name}
-                  price={product.discountPrice || product.price}
-                  originalPrice={product.discountPrice ? product.price : undefined}
-                  rating={product.rating}
-                  reviewCount={product.reviewCount}
-                  image={product.image}
-                  hoverImage={product.hoverImage}
-                  discount={product.discountPrice ? Math.round((1 - product.discountPrice / product.price) * 100) : undefined}
-                  onAddToCart={() => {
-                    addItem({ 
-                      id: parseInt(product.id), 
-                      name: product.name, 
-                      image: product.image,
-                      originalPrice: product.price,
-                      salePrice: product.discountPrice || product.price,
-                      quantity: 1
-                    });
-                    openMiniCart();
-                  }}
-                  onFavorite={() => {
-                    console.log('Add to wishlist:', product.id);
-                  }}
-                  onView={() => {
-                    router.push(`/product/${product.id}`);
-                  }}
-                />
-              );
-                })
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào.</p>
-                </div>
-              )}
+                  })}
             </div>
 
             {/* Pagination */}
