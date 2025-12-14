@@ -1,9 +1,28 @@
+"use client"
+
 import Image from 'next/image'
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ChevronRight } from 'lucide-react'
+import { useSWRFetch } from '@/app/hooks/useSWRFetch'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
+
+interface BackendCategory {
+  id: string
+  name: string
+  description?: string
+  image?: string
+  isActive: boolean
+}
 
 const DeXuat = () => {
+  const router = useRouter()
+  
+  // Fetch categories từ backend
+  const { data: backendCategories } = useSWRFetch<BackendCategory[]>(`${API_URL}/categories`)
+
   const products = [
     {
       id: 1,
@@ -11,7 +30,8 @@ const DeXuat = () => {
       backgroundImage: '/imgDeXuat/1.jpg',
       category: 'Anime Cosplay',
       title: 'Bộ sưu tập Anime',
-      categoryColor: '#11b6ca'
+      categoryColor: '#11b6ca',
+      categoryName: 'Anime' // Tên để map với backend
     },
     {
       id: 2,
@@ -19,7 +39,8 @@ const DeXuat = () => {
       backgroundImage: '/imgDeXuat/2.jpg',
       category: 'Cổ Trang',
       title: 'Bộ sưu tập cổ trang',
-      categoryColor: '#fcf9c4'
+      categoryColor: '#fcf9c4',
+      categoryName: 'Cổ trang' // Tên để map với backend
     },
     {
       id: 3,
@@ -27,9 +48,27 @@ const DeXuat = () => {
       backgroundImage: '/imgDeXuat/3.jpg',
       category: 'Đồng Phục Học Sinh',
       title: 'Bộ sưu tập học sinh',
-      categoryColor: '#86e751'
+      categoryColor: '#86e751',
+      categoryName: 'Đồng phục' // Tên để map với backend
     }
   ]
+
+  // Function để lấy categoryId từ backend
+  const getCategoryId = (categoryName: string): string | null => {
+    if (!backendCategories) return null
+    const category = backendCategories.find(cat => cat.name === categoryName)
+    return category?.id || null
+  }
+
+  // Handle click "Mua ngay"
+  const handleBuyNow = (categoryName: string) => {
+    const categoryId = getCategoryId(categoryName)
+    if (categoryId) {
+      router.push(`/product?categoryId=${categoryId}`)
+    } else {
+      router.push('/product')
+    }
+  }
 
   return (
     <div className='container mx-auto px-4 py-12'>
@@ -81,15 +120,16 @@ const DeXuat = () => {
             <div className="absolute bottom-4 right-4 z-20">
               <Button 
                 size="sm"
-                className='bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-6 py-2 text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden'
+                onClick={() => handleBuyNow(product.categoryName)}
+                className='bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-6 py-2 text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden cursor-pointer'
               >
               <span className="flex items-center">
                 <span className="relative overflow-hidden">
                   <span className="block transform transition-transform duration-300 group-hover:-translate-y-full">
-                    Mua ngay
+                    Xem ngay
                   </span>
                   <span className="absolute top-0 left-0 block transform translate-y-full transition-transform duration-300 group-hover:translate-y-0">
-                    Mua ngay
+                    Xem ngay
                   </span>
                 </span>
                 <ChevronRight className="ml-2 h-4 w-4" />

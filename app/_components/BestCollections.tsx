@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
 import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 const BestCollections = () => {
+  const router = useRouter()
+  
   const cosplayImages = [
     {
       src: "/ImgPoster/0046a61ff890bcf411e9c789e677c6d9.jpg",
@@ -90,7 +93,8 @@ const BestCollections = () => {
 
               <Button
                 size="sm"
-                className="bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-6 py-2 text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden"
+                onClick={() => router.push('/product')}
+                className="bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-6 py-2 text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden cursor-pointer"
               >
                 <span className="flex items-center">
                   <span className="relative overflow-hidden">

@@ -3,10 +3,11 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useCart } from "@/store/useCartStore"
+import { useToast } from "@/app/hooks/useToast"
 import MiniCart from "../cart/_components/MiniCart"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +29,8 @@ import {
 const Header = () => {
   const { theme, setTheme } = useTheme()
   const { totalItems, isMiniCartOpen, closeMiniCart } = useCart()
+  const router = useRouter()
+  const { error, ToastContainer } = useToast()
   const [selectedLanguage, setSelectedLanguage] = useState("Tiếng Việt")
   const [isLoggedIn, setIsLoggedIn] = useState(false) // State để quản lý trạng thái đăng nhập
   const [userInfo, setUserInfo] = useState({
@@ -35,6 +38,18 @@ const Header = () => {
     email: "user@example.com"
   }) // Thông tin user demo
   const pathname = usePathname() // Lấy đường dẫn hiện tại
+  
+  // Handle wishlist click
+  const handleWishlistClick = () => {
+    if (!isLoggedIn) {
+      error("Chưa đăng nhập", "Vui lòng đăng nhập để xem danh sách yêu thích")
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+    } else {
+      router.push('/wishlist')
+    }
+  }
   
   const menuItems = [
     { name: "TRANG CHỦ", href: "/" },
@@ -187,11 +202,16 @@ const Header = () => {
             </DropdownMenu>
 
             {/* Wishlist */}
-            <Button variant="ghost" size="sm" className={`h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 ${
-              theme === 'dark' 
-                ? 'hover:bg-green-800 hover:text-green-300 text-gray-300' 
-                : 'hover:bg-green-50 hover:text-green-700 text-gray-700'
-            }`}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleWishlistClick}
+              className={`h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 ${
+                theme === 'dark' 
+                  ? 'hover:bg-green-800 hover:text-green-300 text-gray-300' 
+                  : 'hover:bg-green-50 hover:text-green-700 text-gray-700'
+              }`}
+            >
               <Heart className="h-5 w-5" />
               <span className="sr-only">Yêu thích</span>
             </Button>
@@ -235,19 +255,25 @@ const Header = () => {
                 {!isLoggedIn ? (
                   // Khi chưa đăng nhập
                   <>
-                    <DropdownMenuItem onClick={() => setIsLoggedIn(true)} className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/login')} 
+                      className={`transition-colors duration-200 cursor-pointer ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
+                      }`}
+                    >
                       <LogIn className="mr-2 h-4 w-4" />
                       <span>Đăng nhập</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/register')} 
+                      className={`transition-colors duration-200 cursor-pointer ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
+                      }`}
+                    >
                       <UserPlus className="mr-2 h-4 w-4" />
                       <span>Đăng ký</span>
                     </DropdownMenuItem>
@@ -325,6 +351,9 @@ const Header = () => {
       
       {/* Mini Cart */}
       <MiniCart isOpen={isMiniCartOpen} onClose={closeMiniCart} />
+      
+      {/* Toast Container */}
+      <ToastContainer />
     </header>
   )
 }

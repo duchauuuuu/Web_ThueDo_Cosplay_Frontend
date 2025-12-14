@@ -6,6 +6,7 @@ import { useCart } from "@/store/useCartStore";
 import { Search, ChevronDown } from "lucide-react";
 import ProductCard from "@/app/_components/ProductCard";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
+import { useToast } from "@/app/hooks/useToast";
 import { ProductsResponse, Category } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
@@ -18,28 +19,51 @@ export default function ProductPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addItem, openMiniCart } = useCart();
+  const { success, error: showError, ToastContainer } = useToast();
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // TODO: Get from auth store
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState("default");
 
-  // Đọc sortBy từ URL khi component mount
+  // Đọc sortBy và categoryId từ URL khi component mount
   useEffect(() => {
     const sortByParam = searchParams.get('sortBy');
     if (sortByParam) {
       setSortBy(sortByParam);
     }
+    
+    const categoryIdParam = searchParams.get('categoryId');
+    if (categoryIdParam) {
+      setSelectedCategory(categoryIdParam);
+    }
   }, [searchParams]);
 
-  // Debounce search input
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(searchInput);
-    }, 500); // Wait 500ms after user stops typing
+  // Handle search submit (Enter or button click)
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  // Handle Enter key press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Handle favorite
+  const handleFavorite = (productId: string | number) => {
+    if (!isLoggedIn) {
+      showError("Chưa đăng nhập", "Vui lòng đăng nhập để thêm vào danh sách yêu thích");
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+    } else {
+      // TODO: Call API to add to favorites
+      success("Đã thêm vào yêu thích", "Sản phẩm đã được thêm vào danh sách yêu thích của bạn");
+    }
+  };
 
   // Reset page to 1 when filters change
   React.useEffect(() => {
@@ -58,7 +82,7 @@ export default function ProductPage() {
   }, [page, pageSize, selectedCategory, searchQuery, sortBy]);
 
   // Fetch products from API
-  const { data, error, isLoading } = useSWRFetch<ProductsResponse>(apiUrl);
+  const { data, error: fetchError, isLoading } = useSWRFetch<ProductsResponse>(apiUrl);
 
   // Fetch categories from API
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWRFetch<Category[]>(`${API_URL}/categories`);
@@ -167,7 +191,7 @@ export default function ProductPage() {
   }
 
   // Error state - show error message but don't use backup data
-  if (error) {
+  if (fetchError) {
     return (
       <div className="min-h-screen bg-white">
         <div className="mx-auto max-w-7xl px-6 py-8">
@@ -210,6 +234,7 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <ToastContainer />
       {/* Main Content Section */}
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
@@ -224,18 +249,25 @@ export default function ProductPage() {
                     placeholder="Tìm kiếm trang phục..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     className="w-full rounded-full border border-gray-300 bg-white px-6 py-3 text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   />
                   {searchInput && (
                     <button
-                      onClick={() => setSearchInput("")}
+                      onClick={() => {
+                        setSearchInput("");
+                        setSearchQuery("");
+                      }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                       ✕
                     </button>
                   )}
                 </div>
-                <button className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors cursor-pointer">
+                <button 
+                  onClick={handleSearch}
+                  className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors cursor-pointer"
+                >
                   <Search size={20} />
                 </button>
               </div>
@@ -411,6 +443,7 @@ export default function ProductPage() {
                           });
                           openMiniCart();
                         }}
+                        onFavorite={() => handleFavorite(backendProduct.id)}
                         onView={() => router.push(`/product/${backendProduct.id}`)}
                       />
                     );
