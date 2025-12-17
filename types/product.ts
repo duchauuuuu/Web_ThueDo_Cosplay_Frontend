@@ -38,7 +38,7 @@ export interface Product {
   description?: string;
   images?: string[];
   price: number;
-  deposit?: number;
+  discountPrice?: number;
   quantity: number;
   size?: string;
   color?: string;

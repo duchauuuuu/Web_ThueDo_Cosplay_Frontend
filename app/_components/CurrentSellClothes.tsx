@@ -44,10 +44,17 @@ const CurrentSellClothes = () => {
       const primaryImage = sortedImages[0]?.url || product.images?.[0] || DEFAULT_IMAGE
       const hoverImage = sortedImages[1]?.url || product.images?.[1] || undefined
 
+      const finalPrice = product.discountPrice && product.discountPrice > 0 
+        ? Number(product.discountPrice) 
+        : Number(product.price)
+      
       return {
         id: product.id,
         title: product.name,
-        price: Number(product.price),
+        price: finalPrice,
+        originalPrice: product.discountPrice && product.discountPrice > 0 
+          ? Number(product.price) 
+          : undefined,
         rating: product.averageRating || 0, // Dynamic from backend
         reviewCount: product.reviewCount || 0, // Dynamic from backend
         image: primaryImage,
@@ -97,12 +104,18 @@ const CurrentSellClothes = () => {
     const product = products.find(p => p.id === id)
     if (!product) return
     
+    // Tìm product từ backend data để lấy discountPrice
+    const backendProduct = data?.data?.find(p => p.id === id)
+    const finalPrice = backendProduct?.discountPrice && backendProduct.discountPrice > 0
+      ? Number(backendProduct.discountPrice)
+      : Number(backendProduct?.price || product.price)
+    
     addItem({
       id: product.id,
       name: product.title,
       image: product.image,
-      originalPrice: product.originalPrice || product.price,
-      salePrice: product.price,
+      originalPrice: Number(backendProduct?.price || product.price),
+      salePrice: finalPrice,
       quantity: 1,
     })
     

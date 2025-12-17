@@ -460,18 +460,26 @@ export default function ProductPage() {
                         key={backendProduct.id}
                         id={backendProduct.id}
                         title={backendProduct.name}
-                        price={Number(backendProduct.price)}
+                        price={backendProduct.discountPrice && backendProduct.discountPrice > 0 
+                          ? Number(backendProduct.discountPrice) 
+                          : Number(backendProduct.price)}
+                        originalPrice={backendProduct.discountPrice && backendProduct.discountPrice > 0 
+                          ? Number(backendProduct.price) 
+                          : undefined}
                         rating={backendProduct.averageRating || 0}
                         reviewCount={backendProduct.reviewCount || 0}
                         image={sortedImages[0]?.url || DEFAULT_IMAGE}
                         hoverImage={sortedImages[1]?.url}
                         onAddToCart={() => {
+                          const finalPrice = backendProduct.discountPrice && backendProduct.discountPrice > 0 
+                            ? Number(backendProduct.discountPrice) 
+                            : Number(backendProduct.price);
                           addItem({
-                            id: parseInt(backendProduct.id) || 0,
+                            id: backendProduct.id,
                             name: backendProduct.name,
                             image: sortedImages[0]?.url || DEFAULT_IMAGE,
                             originalPrice: Number(backendProduct.price),
-                            salePrice: Number(backendProduct.price),
+                            salePrice: finalPrice,
                             quantity: 1
                           });
                           openMiniCart();

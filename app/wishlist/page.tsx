@@ -74,9 +74,20 @@ function WishlistProductCard({
         </h3>
 
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg font-bold text-green-600">
-            {formatPrice(product.price)}
-          </span>
+          {product.originalPrice && product.originalPrice > product.price ? (
+            <>
+              <span className="text-lg font-bold text-green-600">
+                {formatPrice(product.price)}
+              </span>
+              <span className="text-sm text-gray-400 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            </>
+          ) : (
+            <span className="text-lg font-bold text-green-600">
+              {formatPrice(product.price)}
+            </span>
+          )}
         </div>
 
         {/* Add to Cart Button - Show on hover */}
@@ -131,14 +142,22 @@ export default function WishlistPage() {
         ?.filter((img: any) => img.isActive)
         .sort((a: any, b: any) => a.order - b.order) || [];
       
+      const finalPrice = fav.product?.discountPrice && fav.product.discountPrice > 0
+        ? Number(fav.product.discountPrice)
+        : Number(fav.product?.price || 0);
+      
       return {
         id: fav.product?.id || fav.productId,
         name: fav.product?.name || '',
         image: sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg',
         hoverImage: sortedImages[1]?.url || sortedImages[0]?.url || '/img_clothes/anime/Akatsuki truyện naruto (4).jpg',
-        price: Number(fav.product?.price || 0),
+        price: finalPrice,
+        originalPrice: fav.product?.discountPrice && fav.product.discountPrice > 0
+          ? Number(fav.product.price)
+          : undefined,
         categoryId: fav.product?.categoryId,
         createdAt: fav.createdAt,
+        discountPrice: fav.product?.discountPrice ? Number(fav.product.discountPrice) : undefined,
       };
     });
 
@@ -267,12 +286,16 @@ export default function WishlistPage() {
   };
 
   const handleAddToCart = (product: any) => {
+    const finalPrice = product.discountPrice && product.discountPrice > 0
+      ? product.discountPrice
+      : (product.originalPrice || product.price);
+    
     addItem({
-      id: parseInt(product.id) || 0,
+      id: product.id,
       name: product.name,
       image: product.image,
-      originalPrice: product.price,
-      salePrice: product.price,
+      originalPrice: product.originalPrice || product.price,
+      salePrice: finalPrice,
       quantity: 1,
     });
     openMiniCart();

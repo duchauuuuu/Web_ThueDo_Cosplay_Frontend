@@ -44,16 +44,26 @@ export interface Order {
   userId: string;
   user?: User;
   orderItems?: OrderItem[];
+  orderNumber?: string; // Mã đơn hàng
   totalAmount: number;
   depositAmount: number;
-  shippingAddress: string;
-  shippingFee: number;
+  shippingAddress?: string;
+  rentalAddress?: string; // Địa chỉ giao hàng
+  shippingFee?: number;
   status: OrderStatus;
-  paymentMethod: PaymentMethod;
-  paymentStatus: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentStatus;
   notes?: string;
+  rentalStartDate?: string;
+  rentalEndDate?: string;
   createdAt: string;
   updatedAt: string;
+  // Payment fields (optional - deprecated, nên dùng payment entity riêng)
+  paymentUrl?: string;
+  transactionId?: string;
+  bankName?: string;
+  accountName?: string;
+  accountNo?: string;
 }
 
 export interface OrdersResponse {

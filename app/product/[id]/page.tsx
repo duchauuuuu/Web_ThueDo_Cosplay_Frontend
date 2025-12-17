@@ -133,7 +133,7 @@ export default function ProductDetailPage() {
       id: backendProduct.id,
       name: backendProduct.name,
       price: Number(backendProduct.price),
-      discountPrice: null, // TODO: Add discount logic nếu cần
+      discountPrice: backendProduct.discountPrice ? Number(backendProduct.discountPrice) : null,
       category: backendProduct.category?.name || 'Chưa phân loại',
       size: backendProduct.size || 'M',
       condition: backendProduct.isAvailable ? 'Còn hàng' : 'Hết hàng',
@@ -144,7 +144,6 @@ export default function ProductDetailPage() {
       description: backendProduct.description || 'Chưa có mô tả',
       images: images,
       quantity: backendProduct.quantity || 0,
-      deposit: backendProduct.deposit || 0,
       brand: backendProduct.brand || '',
       color: backendProduct.color || '',
     }
