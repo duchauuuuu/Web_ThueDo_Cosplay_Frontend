@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import useSWR from "swr";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,46 +13,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axiosInstance from "@/lib/utils/axios";
-import { Loading } from "@/app/components/loading";
+import { Loading } from "@/app/_components/loading";
 import { useAuthStore } from "@/store/useAuthStore";
-import type { Order, OrderStatus } from "@/types/Order";
-import type {
-  Review,
-  PageResponse as ReviewPageResponse,
-} from "@/types/Review";
-import { ApiResponse, PageResponse } from "@/types";
+import { useSWRFetch } from "@/app/hooks/useSWRFetch";
+import type { Order, OrderStatus } from "@/types/order";
 
-const statusColor: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-800",
-  CONFIRMED: "bg-blue-100 text-blue-800",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
-  DELIVERED: "bg-emerald-100 text-emerald-800",
-  CANCELLED: "bg-red-100 text-red-700",
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+
+const statusColor: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800",
+  confirmed: "bg-green-100 text-green-800",
+  rented: "bg-blue-100 text-blue-800",
+  returned: "bg-emerald-100 text-emerald-800",
+  cancelled: "bg-red-100 text-red-700",
 };
 
-const statusLabel: Record<OrderStatus, string> = {
-  PENDING: "Chờ xác nhận",
-  CONFIRMED: "Đã xác nhận",
-  SHIPPED: "Đang vận chuyển",
-  DELIVERED: "Đã giao",
-  CANCELLED: "Đã hủy",
+const statusLabel: Record<string, string> = {
+  pending: "Chờ xác nhận",
+  confirmed: "Đã xác nhận",
+  rented: "Đang thuê",
+  returned: "Đã trả",
+  cancelled: "Đã hủy",
 };
 
 const pageSize = 10;
-
-const fetchOrders = async (page: number): Promise<PageResponse<Order>> => {
-  const response = await axiosInstance.get<ApiResponse<PageResponse<Order>>>(
-    `/orders/me?page=${page}&size=${pageSize}`
-  );
-
-  const { status, message, data } = response.data;
-  if (status !== 200 || !data) {
-    throw new Error(message || "Không thể tải danh sách đơn hàng");
-  }
-
-  return data;
-};
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -61,9 +44,12 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   minimumFractionDigits: 0,
 });
 
-const formatCurrency = (value?: number | null) => {
-  if (typeof value !== "number") return "—";
-  return currencyFormatter.format(value);
+const formatCurrency = (value?: number | null | string) => {
+  if (value === null || value === undefined) return "—";
+  // Convert string to number if needed (backend may return decimal as string)
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return "—";
+  return currencyFormatter.format(numValue);
 };
 
 const formatDate = (value?: string) => {
@@ -87,125 +73,73 @@ const buildSummary = (order: Order) => {
 
 export default function OrdersPage() {
   const [page, setPage] = useState(0);
-  const [filter, setFilter] = useState<"all" | "reviewed" | "not_reviewed">(
-    "all"
-  );
-  const [reviewStatusByOrder, setReviewStatusByOrder] = useState<
-    Record<string, "reviewed" | "not_reviewed">
-  >({});
 
-  const { isAuthenticated, user } = useAuthStore();
-  const userId = user?.userId;
+  const { isAuthenticated } = useAuthStore();
 
-  const swrKey = isAuthenticated ? ["/orders/me", page] : null;
-  const {
-    data,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<PageResponse<Order>>(
-    swrKey,
-    async ([, currentPage]) => fetchOrders(Number(currentPage)),
-    { revalidateOnFocus: false }
+  // Backend trả về Order[] trực tiếp, không phải paginated response
+  const ordersEndpoint = isAuthenticated ? `${API_URL}/orders` : null;
+  const { data: ordersData, error, isLoading, mutate } = useSWRFetch<Order[]>(
+    ordersEndpoint
   );
 
-  const orders = useMemo(() => data?.content ?? [], [data?.content]);
-  const totalElements = data?.totalElements ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  // Debug: Log response để kiểm tra
+  useMemo(() => {
+    if (ordersData) {
+      console.log('📦 Orders Endpoint:', ordersEndpoint);
+      console.log('📦 Orders Data:', ordersData);
+      console.log('📦 Is Array?', Array.isArray(ordersData));
+      console.log('📦 Orders Count:', Array.isArray(ordersData) ? ordersData.length : 0);
+      
+      if (Array.isArray(ordersData) && ordersData.length > 0) {
+        console.log('📦 First Order:', ordersData[0]);
+        console.log('📦 First Order totalPrice:', ordersData[0]?.totalPrice);
+        console.log('📦 First Order totalAmount:', ordersData[0]?.totalAmount);
+        console.log('📦 First Order orderItems:', ordersData[0]?.orderItems);
+      } else if (Array.isArray(ordersData) && ordersData.length === 0) {
+        console.log('ℹ️ Orders array is empty - no orders found');
+      }
+    }
+  }, [ordersData, ordersEndpoint]);
+
+  // Log error if any
+  useMemo(() => {
+    if (error) {
+      console.error('❌ Orders Fetch Error:', error);
+      console.error('❌ Error Message:', error.message);
+    }
+  }, [error]);
+
+  // Xử lý pagination ở frontend
+  const orders = useMemo(() => {
+    if (!ordersData) return [];
+    
+    // Nếu là array, trả về trực tiếp
+    if (Array.isArray(ordersData)) {
+      return ordersData;
+    }
+    
+    // Nếu có field content (có thể backend đôi khi wrap trong object)
+    if (ordersData && typeof ordersData === 'object' && 'content' in ordersData) {
+      return Array.isArray((ordersData as any).content) ? (ordersData as any).content : [];
+    }
+    
+    console.warn('⚠️ Unexpected orders data format:', ordersData);
+    return [];
+  }, [ordersData]);
+
+  // Tính toán pagination
+  const totalElements = orders.length;
+  const totalPages = Math.max(1, Math.ceil(orders.length / pageSize));
+  
+  // Lấy orders cho trang hiện tại
+  const paginatedOrders = useMemo(() => {
+    const startIndex = page * pageSize;
+    const endIndex = startIndex + pageSize;
+    return orders.slice(startIndex, endIndex);
+  }, [orders, page]);
 
   const handleRetry = () => mutate();
 
-  // Helper: kiểm tra 1 đơn hàng đã có review cho TẤT CẢ các pet trong đơn hay chưa
-  const hasReviewForOrder = async (
-    order: Order,
-    userId: string
-  ): Promise<boolean> => {
-    const items = order.orderItems ?? [];
-    const petIds = items
-      .map((item) => item.petId)
-      .filter((id): id is string => !!id);
-
-    if (!petIds.length || !order.createdAt) return false;
-
-    const orderTime = new Date(order.createdAt).getTime();
-
-    // Kiểm tra TẤT CẢ các pet phải có review
-    for (const petId of petIds) {
-      try {
-        const resp = await axiosInstance.get<
-          ApiResponse<ReviewPageResponse<Review>>
-        >(`/reviews?petId=${petId}&size=100`);
-
-        if (resp.data.status === 200 && resp.data.data?.content) {
-          const found = resp.data.data.content.some((review) => {
-            if (review.userId !== userId || review.petId !== petId) return false;
-            const reviewTime = new Date(review.createdAt).getTime();
-            return reviewTime >= orderTime;
-          });
-
-          // Nếu một pet không có review thì return false ngay
-          if (!found) return false;
-        } else {
-          // Không có dữ liệu review cho pet này -> chưa bình luận
-          return false;
-        }
-      } catch (err) {
-        console.error(
-          `[Orders] Lỗi khi kiểm tra review cho petId ${petId} trong order ${order.orderId}:`,
-          err
-        );
-        // Nếu có lỗi khi kiểm tra, coi như chưa bình luận
-        return false;
-      }
-    }
-
-    // Tất cả các pet đều có review -> đã bình luận
-    return true;
-  };
-
-  // Load trạng thái review cho từng đơn trên trang hiện tại
-  useEffect(() => {
-    if (!userId || !orders.length) return;
-
-    let cancelled = false;
-
-    const loadReviewStatus = async () => {
-      const statusMap: Record<string, "reviewed" | "not_reviewed"> = {};
-
-      for (const order of orders) {
-        try {
-          const hasReview = await hasReviewForOrder(order, userId);
-          statusMap[order.orderId] = hasReview ? "reviewed" : "not_reviewed";
-        } catch (err) {
-          console.error(
-            `[Orders] Lỗi khi xác định trạng thái review cho order ${order.orderId}:`,
-            err
-          );
-          statusMap[order.orderId] = "not_reviewed";
-        }
-
-        if (cancelled) return;
-      }
-
-      if (!cancelled) {
-        setReviewStatusByOrder(statusMap);
-      }
-    };
-
-    loadReviewStatus();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [orders, userId]);
-
-  // Áp dụng bộ lọc theo trạng thái bình luận
-  const filteredOrders = useMemo(() => {
-    if (filter === "all") return orders;
-    return orders.filter(
-      (order) => reviewStatusByOrder[order.orderId] === filter
-    );
-  }, [orders, filter, reviewStatusByOrder]);
 
   if (!isAuthenticated) {
     return (
@@ -224,59 +158,52 @@ export default function OrdersPage() {
   }
 
   if (error) {
+    console.error('❌ Orders Error:', error);
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
         <p className="mb-4 text-lg font-semibold text-red-500">
           Không thể tải danh sách đơn hàng
         </p>
-        <p className="mb-6 text-slate-600">{error.message}</p>
-        <Button onClick={handleRetry} className="rounded-full px-6">
+        <p className="mb-6 text-gray-600">{error.message || 'Có lỗi xảy ra khi tải dữ liệu'}</p>
+        <Button onClick={handleRetry} className="rounded-full px-6 bg-green-600 hover:bg-green-700">
           Thử lại
         </Button>
       </div>
     );
   }
 
+  // Debug: Log khi không có đơn hàng
+  if (!isLoading && !error && orders.length === 0) {
+    console.log('ℹ️ No orders found after processing. ordersData:', ordersData);
+    console.log('ℹ️ isAuthenticated:', isAuthenticated);
+    console.log('ℹ️ ordersEndpoint:', ordersEndpoint);
+  }
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="relative py-24">
+        <div className="absolute inset-0">
+          <img 
+            src="/ImgPoster/h1-banner01-1.jpg"
+            alt="Orders Background"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/20"></div>
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <h1 className="text-center font-bold text-6xl text-white drop-shadow-lg">
             Đơn hàng của tôi
           </h1>
-          <p className="text-sm text-slate-500">
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <div className="mb-6">
+          <p className="text-sm text-gray-600">
             Tổng cộng {totalElements} đơn đã đặt
           </p>
         </div>
-
-        {/* Bộ lọc theo trạng thái bình luận */}
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant={filter === "all" ? "default" : "outline"}
-            className="rounded-full px-4 py-1 text-sm"
-            onClick={() => setFilter("all")}
-          >
-            Tất cả
-          </Button>
-          <Button
-            type="button"
-            variant={filter === "reviewed" ? "default" : "outline"}
-            className="rounded-full px-4 py-1 text-sm"
-            onClick={() => setFilter("reviewed")}
-          >
-            Đã bình luận
-          </Button>
-          <Button
-            type="button"
-            variant={filter === "not_reviewed" ? "default" : "outline"}
-            className="rounded-full px-4 py-1 text-sm"
-            onClick={() => setFilter("not_reviewed")}
-          >
-            Chưa bình luận
-          </Button>
-        </div>
-      </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <Table className="min-w-full">
@@ -300,49 +227,61 @@ export default function OrdersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.length === 0 ? (
+            {paginatedOrders.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="py-10 text-center text-slate-500"
+                  className="py-10 text-center text-gray-500"
                 >
-                  {orders.length === 0
+                  {orders.length === 0 
                     ? "Bạn chưa có đơn hàng nào."
-                    : "Không có đơn hàng phù hợp với bộ lọc hiện tại."}
+                    : "Không có đơn hàng nào ở trang này."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredOrders.map((order) => (
-                <TableRow key={order.orderId}>
-                  <TableCell className="px-6 py-6 text-sm font-semibold text-slate-900">
-                    #{order.orderId}
-                  </TableCell>
-                  <TableCell className="px-6 py-6 text-sm text-slate-600">
-                    {formatDate(order.createdAt)}
-                  </TableCell>
-                  <TableCell className="px-6 py-6">
-                    <Badge
-                      className={`${statusColor[order.status]} border-0 px-3 py-1 text-xs font-medium`}
-                    >
-                      {statusLabel[order.status] || order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-6 py-6 text-sm text-slate-700">
-                    {formatCurrency(order.totalAmount)}{" "}
-                    <span className="text-slate-500">
-                      {buildSummary(order)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-6 py-6 text-right">
-                    <Button
-                      asChild
-                      className="rounded-full bg-rose-500 px-8 text-sm font-semibold text-white hover:bg-rose-600"
-                    >
-                      <Link href={`/orders/${order.orderId}`}>Xem</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              paginatedOrders.map((order: Order) => {
+                // Tính tổng tiền từ orderItems nếu totalPrice không có
+                let total: number | string | null | undefined = order.totalPrice || order.totalAmount;
+                if (!total && order.orderItems && order.orderItems.length > 0) {
+                  total = order.orderItems.reduce((sum: number, item) => {
+                    const itemPrice = typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0);
+                    const itemQty = item.quantity || 1;
+                    return sum + (itemPrice * itemQty);
+                  }, 0);
+                }
+
+                return (
+                  <TableRow key={order.id}>
+                    <TableCell className="px-6 py-6 text-sm font-semibold text-gray-900">
+                      #{order.orderNumber || order.id}
+                    </TableCell>
+                    <TableCell className="px-6 py-6 text-sm text-gray-600">
+                      {formatDate(order.createdAt)}
+                    </TableCell>
+                    <TableCell className="px-6 py-6">
+                      <Badge
+                        className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-3 py-1 text-xs font-medium rounded-full`}
+                      >
+                        {statusLabel[order.status?.toLowerCase()] || order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-6 py-6 text-sm text-gray-700">
+                      {formatCurrency(total)}{" "}
+                      <span className="text-gray-500">
+                        {buildSummary(order)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-6 text-right">
+                      <Button
+                        asChild
+                        className="rounded-full bg-green-600 px-8 text-sm font-semibold text-white hover:bg-green-700"
+                      >
+                        <Link href={`/orders/${order.id}`}>Xem</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -358,7 +297,7 @@ export default function OrdersPage() {
               variant="outline"
               disabled={page === 0}
               onClick={() => setPage((prev) => Math.max(0, prev - 1))}
-              className="rounded-full"
+              className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
             >
               Trước
             </Button>
@@ -368,13 +307,14 @@ export default function OrdersPage() {
               onClick={() =>
                 setPage((prev) => Math.min(totalPages - 1, prev + 1))
               }
-              className="rounded-full"
+              className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
             >
               Sau
             </Button>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

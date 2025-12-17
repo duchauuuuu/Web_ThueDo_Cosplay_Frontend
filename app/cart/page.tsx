@@ -364,14 +364,39 @@ const CartPage = () => {
     }
 
     try {
+      // Validate và chuẩn bị product IDs
+      const validItems = items.filter(item => {
+        if (!item.id) {
+          console.error('❌ Cart item missing ID:', item)
+          return false
+        }
+        return true
+      })
+
+      if (validItems.length === 0) {
+        error('Lỗi', 'Giỏ hàng không có sản phẩm hợp lệ')
+        return
+      }
+
+      if (validItems.length < items.length) {
+        // Xóa các items không hợp lệ khỏi cart
+        items.forEach(item => {
+          if (!item.id) {
+            removeItem(item.id)
+          }
+        })
+        error('Lỗi', 'Đã xóa các sản phẩm không hợp lệ khỏi giỏ hàng. Vui lòng thử lại.')
+        return
+      }
+
       // Chuẩn bị data để gửi lên backend
       const rentalStartDate = new Date()
       const rentalEndDate = new Date()
       rentalEndDate.setDate(rentalEndDate.getDate() + 7) // Mặc định thuê 7 ngày
 
       const orderData = {
-        items: items.map(item => ({
-          productId: item.id as string,
+        items: validItems.map(item => ({
+          productId: String(item.id), // Đảm bảo convert sang string
           quantity: item.quantity
         })),
         rentalStartDate: rentalStartDate.toISOString(),
@@ -382,10 +407,18 @@ const CartPage = () => {
         notes: customerInfo.note || ''
       }
 
-      // Gửi request tạo đơn hàng lên backend
+      console.log('📦 Creating order with data:', {
+        itemsCount: orderData.items.length,
+        paymentMethod: customerInfo.paymentMethod,
+        items: orderData.items.map(i => ({ productId: i.productId, quantity: i.quantity }))
+      })
+
+      // Gửi request tạo đơn hàng lên backend (LUÔN LUÔN tạo đơn hàng, cho cả COD và bank)
       const orderResult = await apiClient.post('/orders', orderData) as Order
 
-      // Nếu payment method là bank_transfer, tạo payment và redirect đến trang thanh toán
+      console.log('✅ Order created successfully:', orderResult.id)
+
+      // Nếu payment method là bank, tạo payment và redirect đến trang thanh toán
       if (customerInfo.paymentMethod === 'bank') {
         try {
           const paymentResult = await apiClient.post('/payments', {
@@ -413,12 +446,15 @@ const CartPage = () => {
           }, 2000)
         }
       } else {
-        // Nếu là cash (COD), chỉ redirect đến trang đơn hàng
+        // Nếu là cash (COD - Cash on Delivery)
+        // Đơn hàng đã được tạo ở trên, chỉ cần clear cart và redirect
+        console.log('✅ COD order created, clearing cart and redirecting')
+        
         // Clear giỏ hàng
         clearCart()
 
         // Hiển thị thông báo thành công
-        success('Đặt hàng thành công', 'Đơn hàng của bạn đã được tạo thành công')
+        success('Đặt hàng thành công', 'Đơn hàng của bạn đã được tạo thành công. Vui lòng thanh toán khi nhận hàng.')
         
         // Redirect đến trang đơn hàng
         setTimeout(() => {
@@ -429,13 +465,32 @@ const CartPage = () => {
     } catch (err: any) {
       console.error('❌ Checkout Error:', err)
       
-      if (err.message?.includes('401') || err.message?.includes('unauthorized')) {
+      const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại sau'
+      
+      if (err.response?.status === 401 || err.message?.includes('401') || err.message?.includes('unauthorized')) {
         error('Lỗi xác thực', 'Vui lòng đăng nhập lại')
         setTimeout(() => {
           router.push('/login')
         }, 1500)
+      } else if (errorMessage.includes('Không tìm thấy sản phẩm')) {
+        // Nếu lỗi là product không tồn tại, xóa item đó khỏi cart
+        const productIdMatch = errorMessage.match(/ID: ([^\s]+)/)
+        if (productIdMatch) {
+          const invalidProductId = productIdMatch[1]
+          console.warn('⚠️ Removing invalid product from cart:', invalidProductId)
+          // Thử xóa với cả string và number
+          removeItem(invalidProductId)
+          // Cũng thử tìm và xóa item có id này
+          const invalidItem = items.find(item => String(item.id) === invalidProductId || String(item.id) === String(invalidProductId))
+          if (invalidItem) {
+            removeItem(invalidItem.id)
+          }
+          error('Lỗi', `Sản phẩm không còn tồn tại trong hệ thống (ID: ${invalidProductId}). Đã tự động xóa khỏi giỏ hàng. Vui lòng kiểm tra lại và thử lại.`)
+        } else {
+          error('Lỗi', errorMessage)
+        }
       } else {
-        error('Lỗi', err.message || 'Không thể tạo đơn hàng. Vui lòng thử lại sau')
+        error('Lỗi', errorMessage)
       }
     }
   }

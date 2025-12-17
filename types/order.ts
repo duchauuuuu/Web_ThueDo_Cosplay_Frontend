@@ -5,9 +5,7 @@ import { Product } from './product';
 export enum OrderStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
-  PREPARING = 'preparing',
-  SHIPPING = 'shipping',
-  DELIVERED = 'delivered',
+  RENTED = 'rented',
   RETURNED = 'returned',
   CANCELLED = 'cancelled',
 }
@@ -45,8 +43,10 @@ export interface Order {
   user?: User;
   orderItems?: OrderItem[];
   orderNumber?: string; // Mã đơn hàng
-  totalAmount: number;
-  depositAmount: number;
+  totalPrice?: number; // Từ backend
+  totalAmount?: number; // Alias cho totalPrice
+  totalDeposit?: number; // Từ backend
+  depositAmount?: number; // Alias cho totalDeposit
   shippingAddress?: string;
   rentalAddress?: string; // Địa chỉ giao hàng
   shippingFee?: number;
