@@ -3,17 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import axiosInstance from '@/lib/utils/axios'
-import useSWR from 'swr'
-import { Loading } from '@/app/components/loading'
-import type { Order } from '@/types/Order'
+import { useSWRFetch } from '@/app/hooks/useSWRFetch'
+import type { Order } from '@/types/order'
+import { PaymentMethod, PaymentStatus } from '@/types/order'
 import { CheckCircle, Copy, ArrowLeft, Clock, AlertCircle } from 'lucide-react'
-import { useToast } from '@/hook/useToast'
+import { useToast } from '@/app/hooks/useToast'
+import { Loading } from '@/app/_components/loading'
 
-const fetcher = async (url: string) => {
-  const response = await axiosInstance.get(url)
-  return response.data
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 
 export default function PaymentPage() {
   const params = useParams()
@@ -26,65 +23,71 @@ export default function PaymentPage() {
   const { success, error: showError, ToastContainer } = useToast()
 
   // Fetch order detail
-  const { data: orderData, error, isLoading } = useSWR<{ data: Order }>(
-    orderId ? `/orders/${orderId}` : null,
-    fetcher,
+  const { data: orderData, error, isLoading } = useSWRFetch<Order>(
+    orderId ? `${API_URL}/orders/${orderId}` : null,
+    undefined,
     {
       refreshInterval: 5000 // Auto refresh mỗi 5s để check payment status
     }
   )
 
-  const order = orderData?.data
+  const order = orderData
+
+  // Fetch payment cho order này
+  const { data: paymentsData } = useSWRFetch<any[]>(
+    orderId ? `${API_URL}/payments/order/${orderId}` : null,
+    undefined,
+    {
+      refreshInterval: 5000
+    }
+  )
+
+  // Lấy payment đầu tiên (thường chỉ có 1 payment cho 1 order)
+  const payment = paymentsData && paymentsData.length > 0 ? paymentsData[0] : null
 
   // Tính toán và đếm ngược thời gian thanh toán (10 phút)
+  // Luôn bắt đầu từ 10 phút khi vào trang, không phụ thuộc vào createdAt
   useEffect(() => {
-    if (!order?.createdAt) return
+    // Bắt đầu từ 10 phút (600 giây)
+    setTimeLeft(10 * 60)
 
-    const calculateTimeLeft = () => {
-      const createdAt = new Date(order.createdAt).getTime()
-      const now = new Date().getTime()
-      const elapsed = Math.floor((now - createdAt) / 1000) // Thời gian đã trôi qua (giây)
-      const totalTime = 10 * 60 // 10 phút = 600 giây
-      const remaining = Math.max(0, totalTime - elapsed)
-      return remaining
-    }
-
-    // Tính thời gian còn lại ngay lập tức
-    setTimeLeft(calculateTimeLeft())
+    let currentTime = 10 * 60 // Bắt đầu từ 10 phút
 
     // Cập nhật mỗi giây
     const interval = setInterval(() => {
-      const remaining = calculateTimeLeft()
-      setTimeLeft(remaining)
+      currentTime = Math.max(0, currentTime - 1)
+      setTimeLeft(currentTime)
 
       // Nếu hết thời gian, hiển thị thông báo
-      if (remaining === 0) {
+      if (currentTime === 0) {
         showError('Hết thời gian thanh toán', 'Thời gian thanh toán đã hết. Vui lòng tạo đơn hàng mới.')
         clearInterval(interval)
       }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [order?.createdAt, showError])
+  }, [showError])
 
   // Thông báo & redirect khi thanh toán thành công hoặc thất bại (chỉ 1 lần)
   useEffect(() => {
-    if (!order || hasShownPaymentToast) return
+    if (!payment || hasShownPaymentToast) return
 
-    if (order.paymentStatus === 'PAID') {
+    // Kiểm tra payment status thay vì order paymentStatus
+    if (payment.status === 'completed') {
       success(
         'Thanh toán thành công',
-        'Đơn hàng của bạn đã được thanh toán thành công. Cảm ơn bạn đã mua sắm tại Petopia!'
+        'Đơn hàng của bạn đã được thanh toán thành công. Cảm ơn bạn đã mua sắm tại Haucosplay!'
       )
 
       setHasShownPaymentToast(true)
+      // Redirect ngay sau 2 giây thay vì 4 giây
       setTimeout(() => {
         router.push(`/orders`)
-      }, 4000)
+      }, 2000)
       return
     }
 
-    if (order.paymentStatus === 'FAILED') {
+    if (payment.status === 'failed' || payment.status === 'refunded') {
       const isTimeout = timeLeft === 0
 
       showError(
@@ -99,7 +102,7 @@ export default function PaymentPage() {
         router.push('/orders')
       }, 5000)
     }
-  }, [order, router, success, showError, timeLeft, hasShownPaymentToast])
+  }, [payment, router, success, showError, timeLeft, hasShownPaymentToast])
 
   // Format thời gian còn lại (MM:SS)
   const formatTime = (seconds: number): string => {
@@ -109,12 +112,50 @@ export default function PaymentPage() {
   }
 
   const handleCopyContent = () => {
-    if (order?.transactionId) {
-      navigator.clipboard.writeText(order.transactionId)
+    if (payment?.transactionId) {
+      navigator.clipboard.writeText(payment.transactionId)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
   }
+
+  // Lấy QR code từ payment (backend đã trả về qrCode hoặc qrCodeUrl)
+  const getPaymentUrl = () => {
+    // Ưu tiên dùng qrCode hoặc qrCodeUrl từ backend
+    if (payment?.qrCode) return payment.qrCode
+    if (payment?.qrCodeUrl) return payment.qrCodeUrl
+    
+    // Fallback: parse từ sepayResponse nếu backend chưa trả về
+    if (!payment?.sepayResponse) return null
+    try {
+      const sepayData = typeof payment.sepayResponse === 'string' 
+        ? JSON.parse(payment.sepayResponse) 
+        : payment.sepayResponse
+      return sepayData?.qrCode || sepayData?.paymentUrl || sepayData?.qrCodeUrl || null
+    } catch {
+      return null
+    }
+  }
+
+  // Lấy nội dung chuyển khoản từ payment (orderInfo từ backend)
+  const getPaymentContent = () => {
+    // Ưu tiên dùng orderInfo từ backend response
+    if (payment?.orderInfo) return payment.orderInfo
+    
+    // Fallback: parse từ sepayResponse
+    if (!payment?.sepayResponse) return null
+    try {
+      const sepayData = typeof payment.sepayResponse === 'string' 
+        ? JSON.parse(payment.sepayResponse) 
+        : payment.sepayResponse
+      return sepayData?.orderInfo || null
+    } catch {
+      return null
+    }
+  }
+
+  const paymentUrl = getPaymentUrl()
+  const paymentContent = getPaymentContent()
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -129,7 +170,7 @@ export default function PaymentPage() {
     setShowCancelModal(false)
     success('Hủy thành công', 'Giao dịch đã được hủy.')
     setTimeout(() => {
-      router.push('/pets')
+      router.push('/orders')
     }, 1000)
   }
 
@@ -137,7 +178,9 @@ export default function PaymentPage() {
     setShowCancelModal(false)
   }
 
-  if (isLoading) return <Loading />
+  if (isLoading) {
+    return <Loading variant="fullpage" />
+  }
   
   if (error) {
     return (
@@ -147,7 +190,7 @@ export default function PaymentPage() {
           <p className="text-gray-600 mb-6">{error.message}</p>
           <button
             onClick={() => router.push('/orders')}
-            className="bg-[#7B4F35] text-white px-6 py-3 rounded-full hover:bg-[#A0694B] transition-colors"
+            className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
           >
             Quay lại đơn hàng
           </button>
@@ -158,21 +201,45 @@ export default function PaymentPage() {
 
   if (!order) return null
 
-  // Nếu không phải BANK_TRANSFER hoặc không có paymentUrl
-  if (order.paymentMethod !== 'BANK_TRANSFER' || !order.paymentUrl) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Đơn hàng không cần thanh toán online</h2>
-          <button
-            onClick={() => router.push('/orders')}
-            className="bg-[#7B4F35] text-white px-6 py-3 rounded-full hover:bg-[#A0694B] transition-colors"
-          >
-            Xem đơn hàng
-          </button>
+  // Nếu payment đã completed, redirect ngay không hiển thị gì
+  if (payment && payment.status === 'completed') {
+    return <Loading variant="fullpage" />
+  }
+
+  // Kiểm tra payment - chỉ hiển thị trang thanh toán nếu có payment với method SEPAY và có QR code
+  if (!payment || payment.method !== 'sepay' || !paymentUrl) {
+    // Nếu chưa có payment, hiển thị loading
+    if (!payment) {
+      return <Loading variant="fullpage" />
+    }
+    
+    // Nếu có payment nhưng không phải sepay hoặc không có QR code, redirect về orders
+    if (payment && (payment.method !== 'sepay' || !paymentUrl)) {
+      // Nếu payment đã failed hoặc refunded, chỉ redirect không hiển thị thông báo
+      if (payment.status === 'failed' || payment.status === 'refunded') {
+        return <Loading variant="fullpage" />
+      }
+      
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Đơn hàng không cần thanh toán online hoặc chưa có QR code
+            </h2>
+            {payment.method === 'cash' && (
+              <button
+                onClick={() => router.push('/orders')}
+                className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
+              >
+                Xem đơn hàng
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
+    
+    return <Loading variant="fullpage" />
   }
 
   return (
@@ -237,14 +304,20 @@ export default function PaymentPage() {
             <div className="flex flex-col items-center justify-center">
               {/* QR Code */}
               <div className="relative">
-                <Image
-                  src={order.paymentUrl}
-                  alt="QR Code"
-                  width={320}
-                  height={320}
-                  className="rounded-lg"
-                  unoptimized
-                />
+                {paymentUrl ? (
+                  <Image
+                    src={paymentUrl}
+                    alt="QR Code"
+                    width={320}
+                    height={320}
+                    className="rounded-lg"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-80 h-80 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <Loading variant="inline" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -252,7 +325,7 @@ export default function PaymentPage() {
             <div className="space-y-4">
               {/* Bank Info Header */}
               <div className="flex items-start gap-3 pb-4 border-b">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">ICB</span>
                 </div>
                 <div className="flex-1">
@@ -269,7 +342,7 @@ export default function PaymentPage() {
                 </div>
                 <button
                   onClick={() => handleCopy(order.accountName || 'NGUYEN DUC HAU', 'Tên chủ tài khoản')}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
                 >
                   Sao chép
                 </button>
@@ -283,7 +356,7 @@ export default function PaymentPage() {
                 </div>
                 <button
                   onClick={() => handleCopy(order.accountNo || '109876820087', 'Số tài khoản')}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
                 >
                   Sao chép
                 </button>
@@ -293,11 +366,11 @@ export default function PaymentPage() {
               <div className="flex items-center justify-between pb-3 border-b">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">Số tiền:</div>
-                  <div className="font-semibold text-gray-800">{order.totalAmount.toLocaleString('vi-VN')} vnd</div>
+                  <div className="font-semibold text-gray-800">{payment.amount?.toLocaleString('vi-VN') || (order.totalAmount || 0).toLocaleString('vi-VN')} vnd</div>
                 </div>
                 <button
-                  onClick={() => handleCopy(order.totalAmount.toString(), 'Số tiền')}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
+                  onClick={() => handleCopy(payment.amount?.toString() || (order.totalAmount || 0).toString(), 'Số tiền')}
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
                 >
                   Sao chép
                 </button>
@@ -307,11 +380,11 @@ export default function PaymentPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">Nội dung:</div>
-                  <div className="font-semibold text-gray-800 break-all">{order.transactionId}</div>
+                  <div className="font-semibold text-gray-800 break-all">{paymentContent || payment.transactionId || order.orderNumber}</div>
                 </div>
                 <button
-                  onClick={() => handleCopy(order.transactionId || '', 'Nội dung')}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors ml-2 cursor-pointer"
+                  onClick={() => handleCopy(paymentContent || payment.transactionId || order.orderNumber || '', 'Nội dung')}
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors ml-2 cursor-pointer border border-green-200"
                 >
                   Sao chép
                 </button>
@@ -323,8 +396,8 @@ export default function PaymentPage() {
           <div className="mt-6">
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-sm text-gray-700">
-                <strong>Lưu ý :</strong> Nhập chính xác số tiền <strong>{order.totalAmount.toLocaleString('vi-VN')}</strong>, nội dung{' '}
-                <strong>{order.transactionId}</strong> khi chuyển khoản
+                <strong>Lưu ý :</strong> Nhập chính xác số tiền <strong>{(payment.amount || order.totalAmount || 0).toLocaleString('vi-VN')}</strong>, nội dung{' '}
+                <strong>{paymentContent || payment.transactionId || order.orderNumber}</strong> khi chuyển khoản
               </p>
             </div>
           </div>
@@ -333,7 +406,7 @@ export default function PaymentPage() {
           <div className="mt-6 text-center">
             <button
               onClick={handleCancel}
-              className="px-16 py-3 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-lg transition-colors cursor-pointer"
+              className="px-16 py-3 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-full transition-colors cursor-pointer"
             >
               Hủy
             </button>
@@ -366,13 +439,13 @@ export default function PaymentPage() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleCloseModal}
-                className="px-6 py-2 bg-gray-100 border border-gray-400 text-gray-700 font-normal rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                className="px-6 py-2 bg-gray-100 border border-gray-400 text-gray-700 font-normal rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Đóng
               </button>
               <button
                 onClick={handleConfirmCancel}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-normal rounded-lg transition-colors cursor-pointer"
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-normal rounded-full transition-colors cursor-pointer"
               >
                 Xác nhận hủy
               </button>

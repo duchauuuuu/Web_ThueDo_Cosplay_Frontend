@@ -1,14 +1,15 @@
 import useSWR, { SWRConfiguration, SWRResponse } from "swr";
-import { FetchOptions } from "@/types";
+import { useAuthStore } from '@/store/useAuthStore';
+import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 
-async function jsonFetcher<T>(url: string, opts?: FetchOptions): Promise<T> {
-  const res = await fetch(url, {
-    method: opts?.method ?? "GET",
+async function jsonFetcher<T>(url: string, headers?: Record<string, string>): Promise<T> {
+  // Sử dụng fetchWithAuth để tự động thêm token và xử lý refresh token
+  const res = await fetchWithAuth(url, {
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
-      ...(opts?.headers ?? {}),
+      ...(headers ?? {}),
     },
-    body: opts?.body ? JSON.stringify(opts.body) : undefined,
   });
 
   if (!res.ok) {
@@ -23,30 +24,22 @@ async function jsonFetcher<T>(url: string, opts?: FetchOptions): Promise<T> {
 }
 
 /**
- * Hook SWR dùng chung để fetch dữ liệu.
+ * Hook SWR chỉ dùng cho GET requests để fetch dữ liệu.
  *
  * @param url       Endpoint (set null để tắt gọi)
- * @param options   method/body/headers cho fetch
+ * @param headers   Optional headers cho request
  * @param config    Cấu hình SWR (revalidate, deduping, v.v.)
  */
 export function useSWRFetch<T = unknown>(
   url: string | null,
-  options?: FetchOptions,
+  headers?: Record<string, string>,
   config?: SWRConfiguration<T>
 ): SWRResponse<T, Error> & { isLoading: boolean } {
-  const key =
-    url === null
-      ? null
-      : [
-          url,
-          options?.method ?? "GET",
-          options?.body ? JSON.stringify(options.body) : null,
-          options?.headers,
-        ];
+  const key = url === null ? null : [url, headers];
 
   const swr = useSWR<T, Error>(
     key,
-    () => jsonFetcher<T>(url as string, options),
+    () => jsonFetcher<T>(url as string, headers),
     {
       revalidateOnFocus: false,
       ...config,
@@ -58,6 +51,4 @@ export function useSWRFetch<T = unknown>(
     isLoading: swr.isLoading ?? (!swr.error && !swr.data),
   };
 }
-
-export type { FetchOptions };
 

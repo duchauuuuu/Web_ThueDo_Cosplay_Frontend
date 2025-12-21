@@ -1,121 +1,70 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Pet } from '@/types/Pet';
+import { persist } from 'zustand/middleware';
 
-export interface FavoriteItem {
-  pet: Pet;
-  img: string | null;
-  addedAt: string; // Thời gian thêm vào danh sách yêu thích
+interface Product {
+  id: string;
+  name: string;
+  image: string;
+  hoverImage?: string;
+  price: number;
+  categoryId?: string;
+  createdAt?: string;
 }
 
-interface FavoriteStore {
-  items: FavoriteItem[];
+interface FavoriteState {
+  favorites: Product[];
+  totalFavorites: number;
+
   // Actions
-  addItem: (item: Omit<FavoriteItem, 'addedAt'>) => void;
-  removeItem: (petId: string) => void;
+  addFavorite: (product: Product) => void;
+  removeFavorite: (productId: string) => void;
+  isFavorite: (productId: string) => boolean;
   clearFavorites: () => void;
-  // Computed values
-  getTotalItems: () => number;
-  getItemById: (petId: string) => FavoriteItem | undefined;
-  isFavorite: (petId: string) => boolean;
+  setFavorites: (favorites: Product[]) => void;
 }
 
-export const useFavoriteStore = create<FavoriteStore>()(
+export const useFavoriteStore = create<FavoriteState>()(
   persist(
     (set, get) => ({
-      items: [],
+      favorites: [],
+      totalFavorites: 0,
 
-      addItem: (item) => {
-        const { items } = get();
-        const existingItem = items.find(favItem => favItem.pet.petId === item.pet.petId);
+      addFavorite: (product) =>
+        set((state) => {
+          const exists = state.favorites.some((item) => item.id === product.id);
+          if (exists) return state;
 
-        if (!existingItem) {
-          // Chỉ thêm nếu chưa có trong danh sách yêu thích
-          set({
-            items: [...items, { ...item, addedAt: new Date().toISOString() }],
-          });
-        }
+          return {
+            favorites: [...state.favorites, product],
+            totalFavorites: state.totalFavorites + 1,
+          };
+        }),
+
+      removeFavorite: (productId) =>
+        set((state) => ({
+          favorites: state.favorites.filter((item) => item.id !== productId),
+          totalFavorites: Math.max(0, state.totalFavorites - 1),
+        })),
+
+      isFavorite: (productId) => {
+        const state = get();
+        return state.favorites.some((item) => item.id === productId);
       },
 
-      removeItem: (petId) => {
-        const { items } = get();
+      clearFavorites: () =>
         set({
-          items: items.filter(item => item.pet?.petId !== petId),
-        });
-      },
+          favorites: [],
+          totalFavorites: 0,
+        }),
 
-      clearFavorites: () => {
-        set({ items: [] });
-      },
-
-      getTotalItems: () => {
-        const { items } = get();
-        return items.length;
-      },
-
-      getItemById: (petId) => {
-        const { items } = get();
-        return items.find(item => item.pet?.petId === petId);
-      },
-
-      isFavorite: (petId) => {
-        const { items } = get();
-        return items.some(item => item.pet?.petId === petId);
-      },
+      setFavorites: (favorites) =>
+        set({
+          favorites,
+          totalFavorites: favorites.length,
+        }),
     }),
     {
-      name: 'favorite-storage', // Tên key trong localStorage
-      storage: createJSONStorage(() => localStorage), // Sử dụng localStorage
-      // Thêm onRehydrateStorage để clean up dữ liệu không hợp lệ
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Lọc bỏ các items không có pet
-          state.items = state.items.filter(item => item.pet && item.pet.petId);
-        }
-      },
+      name: 'favorite-storage',
     }
   )
 );
-
-// Export hook đơn giản để sử dụng
-export const useFavorite = () => {
-  const items = useFavoriteStore((state) => state.items);
-  const addItem = useFavoriteStore((state) => state.addItem);
-  const removeItem = useFavoriteStore((state) => state.removeItem);
-  const clearFavorites = useFavoriteStore((state) => state.clearFavorites);
-  const getTotalItems = useFavoriteStore((state) => state.getTotalItems);
-  const getItemById = useFavoriteStore((state) => state.getItemById);
-  const isFavorite = useFavoriteStore((state) => state.isFavorite);
-
-  // Computed values để dễ sử dụng
-  const totalItems = getTotalItems();
-
-  // Helper functions
-  const formatAddedDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  return {
-    // State
-    items,
-    totalItems,
-    
-    // Actions
-    addItem,
-    removeItem,
-    clearFavorites,
-    
-    // Getters
-    getItemById,
-    isFavorite,
-    
-    // Helper functions
-    formatAddedDate,
-  };
-};
-

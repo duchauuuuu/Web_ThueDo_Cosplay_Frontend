@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Person } from "@/types";
 
 const classNames = (
@@ -67,6 +68,7 @@ const persons: Person[] = [
 ];
 
 function ImageCarousel() {
+  const router = useRouter();
   const [activeItem, setActiveItem] = useState(Math.floor(persons.length / 2));
   const wrapperRef = useRef<HTMLUListElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,14 +146,14 @@ function ImageCarousel() {
     </div>
      {/* Nút thuê ngay ở dưới carousel */}
      <div className="flex items-center justify-center mt-8">
-     <ShimmerButton />
+     <ShimmerButton onClick={() => router.push('/product')} />
    </div>
    </>
   );
 }
 
 // Component ShimmerButton với màu xanh lá cây
-function ShimmerButton() {
+function ShimmerButton({ onClick }: { onClick?: () => void }) {
   const customCss = `
     /* CSS cho hiệu ứng shimmer */
     @property --angle {
@@ -171,7 +173,10 @@ function ShimmerButton() {
   return (
     <div className="flex items-center justify-center font-sans">
       <style>{customCss}</style>
-      <button className="relative inline-flex items-center justify-center p-[1.5px] bg-gray-300 dark:bg-black rounded-full overflow-hidden group cursor-pointer">
+      <button 
+        onClick={onClick}
+        className="relative inline-flex items-center justify-center p-[1.5px] bg-gray-300 dark:bg-black rounded-full overflow-hidden group cursor-pointer"
+      >
         <div 
           className="absolute inset-0 transition-all duration-300"
           style={{

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Pet } from '@/types/Pet';
 
 export interface CartItem {
-  pet: Pet;
+  id: number | string;
+  name: string;
+  image: string;
+  originalPrice: number;
+  salePrice: number;
   quantity: number;
-  img: string | null;
 }
 
 interface CartStore {
@@ -14,8 +16,8 @@ interface CartStore {
   isMiniCartOpen: boolean;
   // Actions
   addItem: (item: CartItem) => void;
-  removeItem: (petId: string) => void;
-  updateQuantity: (petId: string, quantity: number) => void;
+  removeItem: (productId: string | number) => void;
+  updateQuantity: (productId: string | number, quantity: number) => void;
   clearCart: () => void;
   // Mini cart actions
   openMiniCart: () => void;
@@ -25,8 +27,8 @@ interface CartStore {
   getSubtotal: () => number;
   getTotalItems: () => number;
   getTotalSavings: () => number;
-  getItemById: (petId: string) => CartItem | undefined;
-  isInCart: (petId: string) => boolean;
+  getItemById: (productId: string | number) => CartItem | undefined;
+  isInCart: (productId: string | number) => boolean;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -37,13 +39,13 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const { items } = get();
-        const existingItem = items.find(cartItem => cartItem.pet.petId === item.pet.petId);
+        const existingItem = items.find(cartItem => cartItem.id === item.id);
 
         if (existingItem) {
           // Nếu sản phẩm đã có trong giỏ, tăng số lượng
           set({
             items: items.map(cartItem =>
-              cartItem.pet.petId === item.pet.petId
+              cartItem.id === item.id
                 ? { ...cartItem, quantity: cartItem.quantity + item.quantity }
                 : cartItem
             ),
@@ -56,23 +58,23 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeItem: (petId) => {
+      removeItem: (productId) => {
         const { items } = get();
         set({
-          items: items.filter(item => item.pet?.petId !== petId),
+          items: items.filter(item => item.id !== productId),
         });
       },
 
-      updateQuantity: (petId, quantity) => {
+      updateQuantity: (productId, quantity) => {
         const { items } = get();
         if (quantity <= 0) {
-          get().removeItem(petId);
+          get().removeItem(productId);
           return;
         }
 
         set({
           items: items.map(item =>
-            item.pet?.petId === petId ? { ...item, quantity } : item
+            item.id === productId ? { ...item, quantity } : item
           ),
         });
       },
@@ -97,9 +99,7 @@ export const useCartStore = create<CartStore>()(
       getSubtotal: () => {
         const { items } = get();
         return items.reduce((total, item) => {
-          if (!item.pet) return total;
-          const price = item.pet.discountPrice || item.pet.price;
-          return total + (price * item.quantity);
+          return total + (item.salePrice * item.quantity);
         }, 0);
       },
 
@@ -111,22 +111,19 @@ export const useCartStore = create<CartStore>()(
       getTotalSavings: () => {
         const { items } = get();
         return items.reduce((total, item) => {
-          if (!item.pet) return total;
-          if (item.pet.discountPrice) {
-            return total + ((item.pet.price - item.pet.discountPrice) * item.quantity);
-          }
-          return total;
+          const savings = item.originalPrice - item.salePrice;
+          return total + (savings * item.quantity);
         }, 0);
       },
 
-      getItemById: (petId) => {
+      getItemById: (productId) => {
         const { items } = get();
-        return items.find(item => item.pet?.petId === petId);
+        return items.find(item => item.id === productId);
       },
 
-      isInCart: (petId) => {
+      isInCart: (productId) => {
         const { items } = get();
-        return items.some(item => item.pet?.petId === petId);
+        return items.some(item => item.id === productId);
       },
     }),
     {
@@ -135,8 +132,8 @@ export const useCartStore = create<CartStore>()(
       // Thêm onRehydrateStorage để clean up dữ liệu không hợp lệ
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Lọc bỏ các items không có pet
-          state.items = state.items.filter(item => item.pet && item.pet.petId);
+          // Lọc bỏ các items không có id
+          state.items = state.items.filter(item => item.id);
         }
       },
     }
@@ -167,17 +164,11 @@ export const useCart = () => {
 
   // Helper functions
   const calculateItemTotal = (item: CartItem) => {
-    if (!item.pet) return 0;
-    const price = item.pet.discountPrice || item.pet.price;
-    return price * item.quantity;
+    return item.salePrice * item.quantity;
   };
 
   const calculateItemSavings = (item: CartItem) => {
-    if (!item.pet) return 0;
-    if (item.pet.discountPrice) {
-      return (item.pet.price - item.pet.discountPrice) * item.quantity;
-    }
-    return 0;
+    return (item.originalPrice - item.salePrice) * item.quantity;
   };
 
   return {

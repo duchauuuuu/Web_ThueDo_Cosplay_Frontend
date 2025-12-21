@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import useSWR from "swr";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ClipboardList,
@@ -18,41 +17,44 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import axiosInstance from "@/lib/utils/axios";
-import { Loading } from "@/app/components/loading";
+import { Loading } from "@/app/_components/loading";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useToast } from "@/hook/useToast";
-import type { Order, OrderItem, OrderStatus, PaymentMethod } from "@/types/Order";
-import type { Delivery } from "@/types/Delivery";
-import type { Review, PageResponse } from "@/types/Review";
-import { ApiResponse } from "@/types";
+import { useToast } from "@/app/hooks/useToast";
+import { useSWRFetch } from "@/app/hooks/useSWRFetch";
+import type { Order, OrderItem } from "@/types/order";
+import { uploadImage } from "@/lib/api/upload";
+import { apiClient } from "@/lib/api/fetch-with-auth";
 
-const statusColor: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-800",
-  CONFIRMED: "bg-blue-100 text-blue-800",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
-  DELIVERED: "bg-emerald-100 text-emerald-800",
-  CANCELLED: "bg-red-100 text-red-700",
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+
+const statusColor: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800",
+  confirmed: "bg-green-100 text-green-800",
+  rented: "bg-blue-100 text-blue-800",
+  returned: "bg-emerald-100 text-emerald-800",
+  cancelled: "bg-red-100 text-red-700",
 };
 
-const statusLabel: Record<OrderStatus, string> = {
-  PENDING: "Chờ xác nhận",
-  CONFIRMED: "Đã xác nhận",
-  SHIPPED: "Đang vận chuyển",
-  DELIVERED: "Đã giao",
-  CANCELLED: "Đã hủy",
+const statusLabel: Record<string, string> = {
+  pending: "Chờ xác nhận",
+  confirmed: "Đã xác nhận",
+  rented: "Đang thuê",
+  returned: "Đã trả",
+  cancelled: "Đã hủy",
 };
 
-const paymentMethodLabel: Record<PaymentMethod, string> = {
-  COD: "Thanh toán khi nhận hàng",
-  BANK_TRANSFER: "Chuyển khoản ngân hàng",
+const paymentMethodLabel: Record<string, string> = {
+  cash: "Thanh toán khi nhận hàng",
+  sepay: "Chuyển khoản ngân hàng",
+  cod: "Thanh toán khi nhận hàng",
+  bank_transfer: "Chuyển khoản ngân hàng",
 };
 
 const paymentStatusLabel: Record<string, string> = {
-  UNPAID: "Chưa thanh toán",
-  PAID: "Đã thanh toán",
-  FAILED: "Thanh toán thất bại",
-  REFUNDED: "Đã hoàn tiền",
+  pending: "Chờ thanh toán",
+  completed: "Đã thanh toán",
+  failed: "Thanh toán thất bại",
+  refunded: "Đã hoàn tiền",
 };
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
@@ -61,9 +63,12 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   minimumFractionDigits: 0,
 });
 
-const formatCurrency = (value?: number | null) => {
-  if (typeof value !== "number") return "—";
-  return currencyFormatter.format(value);
+const formatCurrency = (value?: number | null | string) => {
+  if (value === null || value === undefined) return "—";
+  // Convert string to number if needed (backend may return decimal as string)
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return "—";
+  return currencyFormatter.format(numValue);
 };
 
 const formatDateTime = (value?: string) => {
@@ -77,271 +82,200 @@ const formatDateTime = (value?: string) => {
   }).format(new Date(value));
 };
 
-// Lấy thumbnail ảnh sản phẩm, tái sử dụng logic giống trang pets
-const getItemImage = (petImage?: string | null) => {
-  if (petImage) {
-    if (petImage.startsWith("http://") || petImage.startsWith("https://")) {
-      return petImage;
+// Lấy thumbnail ảnh sản phẩm
+const getItemImage = (productImage?: string | null, product?: any) => {
+  if (productImage) {
+    if (productImage.startsWith("http://") || productImage.startsWith("https://")) {
+      return productImage;
     }
-    if (petImage.startsWith("/")) {
-      return petImage;
+    if (productImage.startsWith("/")) {
+      return productImage;
     }
   }
+  // Try to get from product.images or product.productImages
+  if (product?.images?.[0]) return product.images[0];
+  if (product?.productImages?.[0]?.url) return product.productImages[0].url;
   return "/assets/imgs/imgPet/cat-6593947_1280.jpg";
-};
-
-const fetchOrderDetail = async (orderId: string): Promise<Order> => {
-  const response = await axiosInstance.get<ApiResponse<Order>>(
-    `/orders/${orderId}`
-  );
-  const { status, message, data } = response.data;
-  if (status !== 200 || !data) {
-    throw new Error(message || "Không tìm thấy đơn hàng");
-  }
-  return data;
-};
-
-const fetchDelivery = async (orderId: string): Promise<Delivery | null> => {
-  const response = await axiosInstance.get<Delivery | null>(
-    `/pets/orders/${orderId}/delivery`
-  );
-
-  // BE trả 204 No Content khi chưa có delivery
-  if (response.status === 204 || !response.data) {
-    return null;
-  }
-
-  return response.data;
-};
-
-const DELIVERY_STEPS = [
-  { key: "PREPARING", label: "Chuẩn bị", icon: ClipboardList },
-  { key: "SHIPPED", label: "Đã đóng gói", icon: Package },
-  { key: "IN_TRANSIT", label: "Đang giao", icon: Truck },
-  { key: "DELIVERED", label: "Đã giao hàng", icon: CheckCircle2 },
-] as const;
-
-const getActiveStepIndex = (delivery: Delivery | null): number => {
-  if (!delivery) return -1;
-
-  // Ưu tiên dùng currentStatus, nếu rỗng thì fallback sang timeline[0].status
-  let rawStatus = delivery.currentStatus || "";
-  if (!rawStatus && delivery.timeline && delivery.timeline.length > 0) {
-    rawStatus = delivery.timeline[0].status || "";
-  }
-
-  const status = rawStatus.toLowerCase();
-
-  let index = -1;
-  if (status.includes("chuẩn bị")) index = 0;
-  else if (status.includes("đóng gói")) index = 1;
-  else if (status.includes("đang giao")) index = 2;
-  else if (status.includes("đã giao")) index = 3;
-
-  if (index === -1) {
-    // Nếu có delivery mà không map được thì mặc định sáng bước 1
-    index = 0;
-  }
-
-  console.log("[DeliveryStatus] resolvedStatus:", rawStatus, "=> step:", index);
-  return index;
 };
 
 export default function OrderDetailPage() {
   const params = useParams<{ orderId: string }>();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const orderId = params?.orderId;
-  const activeTab = searchParams.get("tab");
-  
-  // State cho form bình luận
-  const [selectedPetId, setSelectedPetId] = useState<string>("");
-  const [rating, setRating] = useState<number>(5);
-  const [comment, setComment] = useState<string>("");
-  const [reviewImage, setReviewImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const orderEndpoint = orderId ? `${API_URL}/orders/${orderId}` : null;
   const {
     data: order,
     error,
     isLoading,
     mutate,
-  } = useSWR<Order>(
-    orderId ? `/orders/${orderId}` : null,
-    async () => {
-      console.log("[OrderDetail] Bắt đầu gọi API", orderId);
-      const result = await fetchOrderDetail(orderId as string);
-      console.log("[OrderDetail] Nhận dữ liệu", result);
-      return result;
-    },
-    {
-      revalidateOnFocus: false,
-      onError(err) {
-        console.error("[OrderDetail] Lỗi khi load", orderId, err);
-      },
-    }
+  } = useSWRFetch<Order>(orderEndpoint);
+
+  // Fetch payment cho order này
+  const { data: paymentsData } = useSWRFetch<any[]>(
+    orderId ? `${API_URL}/payments/order/${orderId}` : null
   );
 
-  const { data: delivery } = useSWR<Delivery | null>(
-    orderId ? `/pets/orders/${orderId}/delivery` : null,
-    () => fetchDelivery(orderId as string),
-    {
-      revalidateOnFocus: false,
-    }
+  // Fetch comments cho order này
+  const { data: commentsData, mutate: mutateComments } = useSWRFetch<any[]>(
+    orderId ? `${API_URL}/comments/order/${orderId}` : null
   );
 
-  const { user } = useAuthStore();
-  const userId = user?.userId;
-  const { success, error: showError, warning, ToastContainer } = useToast();
+  // Lấy payment đầu tiên (thường chỉ có 1 payment cho 1 order)
+  const payment = paymentsData && paymentsData.length > 0 ? paymentsData[0] : null;
+  
+  // Lấy danh sách comments
+  const comments = commentsData || [];
+
+  // Debug: Log order data
+  useMemo(() => {
+    if (order) {
+      console.log('📦 Order Detail Data:', order);
+      console.log('📦 Order totalPrice:', order.totalPrice);
+      console.log('📦 Order user:', order.user);
+      console.log('📦 Order orderItems:', order.orderItems);
+      console.log('📦 Order rentalAddress:', order.rentalAddress);
+    }
+  }, [order]);
+
+  // Debug: Log payment data
+  useMemo(() => {
+    if (payment) {
+      console.log('💳 Payment Data:', payment);
+      console.log('💳 Payment Method:', payment.method);
+      console.log('💳 Payment Status:', payment.status);
+    }
+  }, [payment]);
+
+  const { ToastContainer, warning, success } = useToast();
+
+  // Review states
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [rating, setRating] = useState<number>(5);
+  const [comment, setComment] = useState<string>("");
+  const [reviewImages, setReviewImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const orderItems: OrderItem[] = useMemo(() => order?.orderItems ?? [], [order?.orderItems]);
-  const petIds = useMemo(() => 
-    orderItems.map(item => item.petId).filter(Boolean) as string[],
-    [orderItems]
-  );
 
-  // Fetch reviews của user cho các sản phẩm trong đơn hàng
-  // Chỉ lấy reviews được tạo SAU thời điểm đơn hàng được tạo
-  const fetchReviewsForOrder = async (petIds: string[], orderCreatedAt: string): Promise<Review[]> => {
-    if (!petIds.length || !userId || !orderCreatedAt) return [];
+  // Tạo map để check sản phẩm nào đã được comment
+  const commentedProductIds = useMemo(() => {
+    return new Set(comments.map((c: any) => c.productId));
+  }, [comments]);
+
+  // Check xem đơn hàng đã comment hết chưa (tất cả sản phẩm đều có comment)
+  const isOrderFullyCommented = useMemo(() => {
+    if (!orderItems || orderItems.length === 0) return false;
+    const allProductIds = new Set(orderItems.map(item => item.productId));
+    return allProductIds.size > 0 && Array.from(allProductIds).every(id => commentedProductIds.has(id));
+  }, [orderItems, commentedProductIds]);
+
+  // Available products for review (show when payment is completed or order is confirmed/returned)
+  const canReview = useMemo(() => {
+    if (!order) return false;
     
-    try {
-      const allReviews: Review[] = [];
-      const orderTime = new Date(orderCreatedAt).getTime();
-      
-      // Gọi API cho từng petId để lấy reviews
-      for (const petId of petIds) {
-        try {
-          const response = await axiosInstance.get<ApiResponse<PageResponse<Review>>>(
-            `/reviews?petId=${petId}&size=100`
-          );
-          if (response.data.status === 200 && response.data.data?.content) {
-            // Lọc chỉ lấy reviews của user này và được tạo SAU thời điểm đơn hàng
-            const filteredReviews = response.data.data.content.filter(review => {
-              if (review.userId !== userId || review.petId !== petId) return false;
-              const reviewTime = new Date(review.createdAt).getTime();
-              return reviewTime >= orderTime; // Review được tạo sau hoặc cùng lúc với đơn hàng
-            });
-            allReviews.push(...filteredReviews);
-          }
-        } catch (error) {
-          console.error(`[Review] Lỗi khi fetch reviews cho petId ${petId}:`, error);
-        }
+    // Kiểm tra payment status từ payment hoặc order (backend có thể trả về "completed" hoặc "paid")
+    const currentPaymentStatus = (payment?.status || order.paymentStatus)?.toLowerCase();
+    const paymentCompleted = currentPaymentStatus === "completed" || currentPaymentStatus === "paid";
+    
+    // Kiểm tra order status - cho phép review khi đơn hàng đã được xác nhận trở lên
+    // Với COD, đơn hàng có thể không có payment record hoặc payment status, nhưng khi order đã được xác nhận thì vẫn cho phép review
+    const orderConfirmed = ["confirmed", "rented", "returned"].includes(order.status?.toLowerCase() || "");
+    
+    // Cho phép review nếu:
+    // 1. Thanh toán thành công (cho các phương thức online) HOẶC
+    // 2. Đơn hàng đã được xác nhận (bao gồm cả COD - không cần payment status)
+    return paymentCompleted || orderConfirmed;
+  }, [order, payment]);
+
+  const availableProductsForReview = useMemo(() => {
+    if (!canReview) return [];
+    return orderItems.map((item) => ({
+      id: item.productId,
+      name: item.product?.name || `Sản phẩm ${item.productId}`,
+    }));
+  }, [canReview, orderItems]);
+
+  // Handle multiple image selection
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate all files
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    files.forEach((file) => {
+      if (file.size > 10 * 1024 * 1024) {
+        invalidFiles.push(`${file.name}: Kích thước quá lớn (max 10MB)`);
+        return;
       }
-      return allReviews;
-    } catch (error) {
-      console.error("[Review] Lỗi khi fetch reviews:", error);
-      return [];
+      if (!file.type.startsWith("image/")) {
+        invalidFiles.push(`${file.name}: Định dạng không hợp lệ`);
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    if (invalidFiles.length > 0) {
+      warning("Một số ảnh không hợp lệ", invalidFiles.join(", "));
     }
-  };
 
-  const { data: orderReviews, mutate: mutateReviews } = useSWR<Review[]>(
-    order && petIds.length > 0 && userId && order.createdAt 
-      ? ["reviews-for-order", petIds, userId, order.createdAt] 
-      : null,
-    () => fetchReviewsForOrder(petIds, order!.createdAt),
-    {
-      revalidateOnFocus: false,
+    if (validFiles.length === 0) return;
+
+    // Limit to 5 images max
+    const filesToAdd = validFiles.slice(0, 5 - reviewImages.length);
+    if (validFiles.length > filesToAdd.length) {
+      warning("Giới hạn số lượng", "Chỉ có thể upload tối đa 5 ảnh");
     }
-  );
 
-  // Lọc ra các petId đã được user đánh giá trong đơn hàng này
-  // (reviews được tạo sau thời điểm đơn hàng)
-  const reviewedPetIds = useMemo(() => {
-    if (!orderReviews || !userId || !order?.createdAt) return new Set<string>();
-    const orderTime = new Date(order.createdAt).getTime();
-    
-    return new Set(
-      orderReviews
-        .filter(review => {
-          if (review.userId !== userId || !review.petId) return false;
-          const reviewTime = new Date(review.createdAt).getTime();
-          return reviewTime >= orderTime; // Đảm bảo review được tạo sau đơn hàng
-        })
-        .map(review => review.petId as string)
-    );
-  }, [orderReviews, userId, order?.createdAt]);
+    // Add to state
+    const newFiles = [...reviewImages, ...filesToAdd];
+    setReviewImages(newFiles);
 
-  // Lọc các sản phẩm chưa được đánh giá trong đơn hàng này
-  const availableItems = useMemo(() => {
-    return orderItems.filter(item => !reviewedPetIds.has(item.petId));
-  }, [orderItems, reviewedPetIds]);
-
-  const subtotal = useMemo(() => {
-    if (!order?.orderItems) return 0;
-    return order.orderItems.reduce(
-      (sum, item) => sum + (item.totalPrice ?? item.price * item.quantity),
-      0
-    );
-  }, [order?.orderItems]);
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-20">
-        <Loading />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <p className="mb-4 text-lg font-semibold text-red-500">
-          Không thể tải chi tiết đơn hàng
-        </p>
-        <p className="mb-6 text-slate-600">{error.message}</p>
-        <div className="flex justify-center gap-4">
-          <Button onClick={() => router.push("/orders")} variant="outline">
-            Về danh sách
-          </Button>
-          <Button onClick={() => mutate()}>Thử lại</Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-slate-600">
-        Không tìm thấy đơn hàng #{orderId}
-      </div>
-    );
-  }
-
-  const shippingFee = order.shippingFee ?? 0;
-  const voucherDiscount = order.voucherDiscountAmount ?? 0;
-  const promotionDiscount = order.promotionDiscountAmount ?? 0;
-  const discount = order.discountAmount ?? voucherDiscount + promotionDiscount;
-  const paymentMethodText = order.paymentMethod
-    ? paymentMethodLabel[order.paymentMethod]
-    : "Chưa cập nhật";
-
-  const activeStep = getActiveStepIndex(delivery || null);
-
-  // Xử lý chọn ảnh
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setReviewImage(file);
+    // Create previews
+    const newPreviews: string[] = [];
+    filesToAdd.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === filesToAdd.length) {
+          setImagePreviews([...imagePreviews, ...newPreviews]);
+        }
       };
       reader.readAsDataURL(file);
+    });
+
+    // Upload to Cloudinary automatically
+    setIsUploading(true);
+    try {
+      const uploadPromises = filesToAdd.map((file) => uploadImage(file, 'reviews'));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map((r) => r.url);
+      setUploadedImageUrls([...uploadedImageUrls, ...newUrls]);
+    } catch (error: any) {
+      warning("Lỗi upload ảnh", error.message || "Không thể upload ảnh lên Cloudinary");
+      // Remove failed uploads from state
+      setReviewImages(reviewImages);
+      setImagePreviews(imagePreviews);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Xóa ảnh đã chọn
-  const handleRemoveImage = () => {
-    setReviewImage(null);
-    setImagePreview(null);
+  // Remove image
+  const handleRemoveImage = (index: number) => {
+    setReviewImages(reviewImages.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+    setUploadedImageUrls(uploadedImageUrls.filter((_, i) => i !== index));
   };
 
-  // Submit review
+  // Handle submit review
   const handleSubmitReview = async () => {
-    // Validation
-    if (!selectedPetId) {
+    if (!selectedProductId) {
       warning("Thiếu thông tin", "Vui lòng chọn sản phẩm để đánh giá");
       return;
     }
@@ -353,239 +287,154 @@ export default function OrderDetailPage() {
       warning("Nội dung không hợp lệ", "Nội dung đánh giá phải có ít nhất 10 ký tự");
       return;
     }
-    if (rating < 1 || rating > 5) {
-      warning("Đánh giá không hợp lệ", "Vui lòng chọn số sao đánh giá từ 1 đến 5");
-      return;
-    }
-
-    // Validate ảnh nếu có
-    if (reviewImage) {
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (reviewImage.size > maxSize) {
-        warning("Kích thước ảnh quá lớn", "Kích thước ảnh không được vượt quá 5MB");
+    
+    // Nếu có ảnh chưa upload, upload trước
+    if (reviewImages.length > uploadedImageUrls.length) {
+      setIsUploading(true);
+      try {
+        const remainingFiles = reviewImages.slice(uploadedImageUrls.length);
+        const uploadPromises = remainingFiles.map((file) => uploadImage(file, 'reviews'));
+        const results = await Promise.all(uploadPromises);
+        const newUrls = results.map((r) => r.url);
+        setUploadedImageUrls([...uploadedImageUrls, ...newUrls]);
+      } catch (error: any) {
+        warning("Lỗi upload ảnh", error.message || "Không thể upload ảnh lên Cloudinary");
+        setIsUploading(false);
+        setIsSubmitting(false);
         return;
-      }
-      // Chấp nhận mọi loại file ảnh (bất kỳ MIME type nào bắt đầu bằng "image/")
-      if (!reviewImage.type || !reviewImage.type.startsWith("image/")) {
-        warning("Định dạng không hợp lệ", "Vui lòng chọn file ảnh hợp lệ");
-        return;
+      } finally {
+        setIsUploading(false);
       }
     }
-
+    
     setIsSubmitting(true);
     try {
-      // Chuẩn bị dữ liệu review
-      const reviewData = {
-        petId: selectedPetId,
-        rating: rating,
-        comment: comment.trim(),
-      };
-
-      // Tạo FormData để gửi kèm ảnh
-      const formData = new FormData();
-      formData.append("review", JSON.stringify(reviewData));
-      
-      if (reviewImage) {
-        formData.append("image", reviewImage);
-      }
-
-      console.log("[Review] Đang gửi đánh giá:", {
-        petId: selectedPetId,
+      // Gọi API submit review với imageUrls
+      await apiClient.post('/comments', {
+        productId: selectedProductId,
+        orderId: orderId,
         rating,
-        hasImage: !!reviewImage,
+        content: comment.trim(),
+        imageUrls: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
       });
-
-      // Gửi request đến backend
-      // Xóa Content-Type để browser tự động set boundary cho FormData
-      const response = await axiosInstance.post<ApiResponse<unknown>>(
-        "/reviews",
-        formData,
-        {
-          transformRequest: (data, headers) => {
-            // Xóa Content-Type để browser tự động set với boundary
-            delete headers["Content-Type"];
-            return data;
-          },
-        }
-      );
-
-      console.log("[Review] Response:", response.data);
-
-      // Kiểm tra kết quả
-      if (response.data.status === 201) {
-        // Thành công
-        success("Đánh giá thành công!", "Cảm ơn bạn đã chia sẻ trải nghiệm.");
-        
-        // Reset form
-        setSelectedPetId("");
-        setRating(5);
-        setComment("");
-        setReviewImage(null);
-        setImagePreview(null);
-        
-        // Reset file input
-        const fileInput = document.querySelector(
-          'input[type="file"]'
-        ) as HTMLInputElement;
-        if (fileInput) {
-          fileInput.value = "";
-        }
-
-        // Cập nhật lại danh sách reviews để ẩn sản phẩm đã đánh giá
-        mutateReviews();
-
-        // Scroll lên đầu form để user thấy form đã được reset
-        const reviewSection = document.querySelector('[data-review-section]');
-        if (reviewSection) {
-          reviewSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      } else {
-        throw new Error(response.data.message || "Không thể gửi đánh giá");
-      }
-    } catch (error: unknown) {
-      console.error("[Review] Lỗi khi gửi đánh giá:", error);
       
-      let errorMessage = "Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.";
+      success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
       
-      if (error && typeof error === "object") {
-        const err = error as {
-          response?: {
-            status?: number;
-            data?: { message?: string; status?: number };
-          };
-          message?: string;
-        };
-
-        if (err.response) {
-          const status = err.response.status;
-          const data = err.response.data;
-
-          if (status === 400) {
-            errorMessage = data?.message || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
-          } else if (status === 401) {
-            errorMessage = "Bạn cần đăng nhập để đánh giá sản phẩm.";
-          } else if (status === 403) {
-            errorMessage = "Bạn không có quyền thực hiện thao tác này.";
-          } else if (status === 404) {
-            errorMessage = "Không tìm thấy sản phẩm. Vui lòng thử lại.";
-          } else if (status === 413) {
-            errorMessage = "Kích thước ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn.";
-          } else if (status === 500) {
-            errorMessage = "Lỗi server. Vui lòng thử lại sau.";
-          } else {
-            errorMessage = data?.message || `Lỗi ${status}. Vui lòng thử lại.`;
-          }
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-      }
-
-      showError("Gửi đánh giá thất bại", errorMessage);
+      // Reset form after success
+      setSelectedProductId("");
+      setRating(5);
+      setComment("");
+      setReviewImages([]);
+      setImagePreviews([]);
+      setUploadedImageUrls([]);
+      
+      // Refresh order data và comments để hiển thị review mới
+      mutate();
+      mutateComments();
+    } catch (error: any) {
+      warning("Lỗi", error.message || "Không thể gửi đánh giá");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-10 text-slate-800">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm text-slate-500">Đơn hàng</p>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            #{order.orderId}
-          </h1>
-          <p className="text-sm text-slate-600">
-            Tạo lúc {formatDateTime(order.createdAt)}
-          </p>
+  const subtotal = useMemo(() => {
+    if (!order?.orderItems) return 0;
+    return order.orderItems.reduce((sum, item) => {
+      const itemPrice = typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0);
+      const itemQty = item.quantity || 1;
+      return sum + (itemPrice * itemQty);
+    }, 0);
+  }, [order?.orderItems]);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-20">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <p className="mb-4 text-lg font-semibold text-red-500">
+          Không thể tải chi tiết đơn hàng
+        </p>
+        {error && <p className="mb-6 text-gray-600">{error.message || 'Lỗi không xác định'}</p>}
+        <div className="flex justify-center gap-4">
+          <Button onClick={() => router.push("/orders")} variant="outline" className="rounded-full">
+            Về danh sách
+          </Button>
+          <Button onClick={() => mutate()} className="rounded-full bg-green-600 hover:bg-green-700">
+            Thử lại
+          </Button>
         </div>
-        <Badge
-          className={`${statusColor[order.status]} border-0 px-4 py-2 text-sm font-semibold`}
-        >
-          {statusLabel[order.status] || order.status}
-        </Badge>
+      </div>
+    );
+  }
+
+  const shippingFee = order.shippingFee ?? 0;
+  
+  // Lấy paymentMethod từ payment nếu có, nếu không thì từ order
+  const paymentMethod = payment?.method || order.paymentMethod;
+  const paymentMethodText = paymentMethod
+    ? paymentMethodLabel[paymentMethod] || "Chưa cập nhật"
+    : "Chưa cập nhật";
+  
+  // Lấy paymentStatus từ payment nếu có, nếu không thì từ order
+  const paymentStatus = payment?.status || order.paymentStatus;
+  const paymentStatusText = paymentStatus
+    ? paymentStatusLabel[paymentStatus] || paymentStatus
+    : "Chưa cập nhật";
+  
+  // Lấy transactionId từ payment nếu có, nếu không thì từ order
+  const transactionId = payment?.transactionId || order.transactionId;
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="relative py-24">
+        <div className="absolute inset-0">
+          <img 
+            src="/ImgPoster/h1-banner01-1.jpg"
+            alt="Order Detail Background"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/20"></div>
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <h1 className="text-center font-bold text-6xl text-white drop-shadow-lg">
+            Chi tiết đơn hàng
+          </h1>
+        </div>
       </div>
 
-      <p className="mt-4 text-sm text-slate-600">
-        Đơn hàng đang ở trạng thái{" "}
-        <span className="font-semibold text-slate-900">
-          {statusLabel[order.status] || order.status}
-        </span>
-        .
-      </p>
-
-      <div className="mt-6 rounded-2xl bg-slate-50 px-4 py-5">
-        <h2 className="mb-4 text-sm font-semibold text-slate-700">
-          Trạng thái giao hàng
-        </h2>
-        {delivery ? (
-          <div className="flex flex-wrap items-center gap-4 md:gap-6">
-            {DELIVERY_STEPS.map((step, index) => {
-              const isActive = activeStep === index;
-              const isCompleted = activeStep > index;
-              const Icon = step.icon;
-
-              const colorConfig = [
-                {
-                  circle: "bg-blue-50 text-blue-600",
-                  text: "text-blue-600",
-                },
-                {
-                  circle: "bg-purple-50 text-purple-600",
-                  text: "text-purple-600",
-                },
-                {
-                  circle: "bg-orange-50 text-orange-600",
-                  text: "text-orange-600",
-                },
-                {
-                  circle: "bg-emerald-50 text-emerald-600",
-                  text: "text-emerald-600",
-                },
-              ][index];
-
-              const circleClass = isActive
-                ? colorConfig.circle
-                : "bg-slate-100 text-slate-400";
-
-              const textClass = isActive
-                ? colorConfig.text
-                : "text-slate-400";
-
-              return (
-                <div key={step.key} className="flex items-center gap-2">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full border ${circleClass} ${
-                      isActive
-                        ? "border-current shadow-sm"
-                        : "border-slate-200"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${textClass}`}
-                  >
-                    {step.label}
-                  </span>
-                  {index < DELIVERY_STEPS.length - 1 && (
-                    <span
-                      className={`mx-1 ${
-                        isCompleted ? "text-slate-400" : "text-slate-300"
-                      }`}
-                    >
-                      {">"}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+      <div className="mx-auto max-w-4xl px-4 py-10 text-gray-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <p className="text-sm text-gray-500">Đơn hàng</p>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              #{order.orderNumber || order.id}
+            </h2>
+            <p className="text-sm text-gray-600">
+              Tạo lúc {formatDateTime(order.createdAt)}
+            </p>
           </div>
-        ) : (
-          <p className="text-sm text-slate-500">
-            Đơn hàng chưa có thông tin giao hàng.
-          </p>
-        )}
-      </div>
+          <Badge
+            className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-4 py-2 text-sm font-semibold rounded-full ${order.status?.toLowerCase() === 'confirmed' ? 'hover:bg-green-100' : ''} cursor-default`}
+          >
+            {statusLabel[order.status?.toLowerCase()] || order.status}
+          </Badge>
+        </div>
+
+        <p className="mb-6 text-sm text-gray-600">
+          Đơn hàng đang ở trạng thái{" "}
+          <span className="font-semibold text-gray-900">
+            {statusLabel[order.status?.toLowerCase()] || order.status}
+          </span>
+          .
+        </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
@@ -595,38 +444,44 @@ export default function OrderDetailPage() {
           </div>
 
           {orderItems.length === 0 ? (
-            <p className="py-6 text-sm text-slate-500">
+            <p className="py-6 text-sm text-gray-500">
               Đơn hàng chưa có sản phẩm.
             </p>
           ) : (
             orderItems.map((item) => {
-              const imgSrc = getItemImage(item.petImage);
+              const product = item.product;
+              const imgSrc = getItemImage(
+                product?.images?.[0] || product?.productImages?.[0]?.url,
+                product
+              );
+              const productName = product?.name || `Sản phẩm ${item.productId}`;
               return (
                 <div
-                  key={`${item.petId}-${item.petName}`}
-                  className="flex items-center justify-between gap-4 border-b border-slate-100 py-4 text-sm text-slate-700"
+                  key={`${item.productId}-${item.id}`}
+                  className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm text-gray-700"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="relative h-14 w-14 overflow-hidden rounded-xl bg-slate-100">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-xl bg-gray-100">
                       <Image
                         src={imgSrc}
-                        alt={item.petName}
+                        alt={productName}
                         fill
                         sizes="56px"
                         className="object-cover"
                       />
                     </div>
-                    <span className="font-medium text-slate-900">
-                      {item.petName}{" "}
-                      <span className="text-slate-500">
+                    <span className="font-medium text-gray-900">
+                      {productName}{" "}
+                      <span className="text-gray-500">
                         × {item.quantity}
                       </span>
                     </span>
                   </div>
-                  <span className="text-right font-semibold text-slate-900">
-                    {formatCurrency(
-                      item.totalPrice ?? item.price * item.quantity
-                    )}
+                  <span className="text-right font-semibold text-gray-900">
+                    {(() => {
+                      const itemPrice = typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0);
+                      return formatCurrency(itemPrice * (item.quantity || 1));
+                    })()}
                   </span>
                 </div>
               );
@@ -646,25 +501,9 @@ export default function OrderDetailPage() {
                 {formatCurrency(shippingFee)}
               </span>
             </div>
-            {promotionDiscount > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">Giảm giá khuyến mãi:</span>
-                <span className="text-right font-semibold text-emerald-600">
-                  -{formatCurrency(promotionDiscount)}
-                </span>
-              </div>
-            )}
-            {voucherDiscount > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">Giảm giá voucher:</span>
-                <span className="text-right font-semibold text-emerald-600">
-                  -{formatCurrency(voucherDiscount)}
-                </span>
-              </div>
-            )}
-            <div className="flex items-center justify-between border-t border-slate-200 pt-4 text-base font-semibold text-slate-900">
+            <div className="flex items-center justify-between border-t border-gray-200 pt-4 text-base font-semibold text-gray-900">
               <span>Tổng cộng:</span>
-              <span>{formatCurrency(order.totalAmount)}</span>
+              <span>{formatCurrency(order.totalPrice || order.totalAmount)}</span>
             </div>
           </div>
         </div>
@@ -676,18 +515,34 @@ export default function OrderDetailPage() {
             </h2>
             <div className="space-y-1 text-sm text-slate-600">
               <p>
-                {order.customerName}
+                {order.user?.fullName || "Chưa cập nhật"}
                 <br />
-                {order.customerPhone}
+                {order.user?.phone || "Chưa cập nhật"}
                 <br />
-                {order.shippingAddress || "Chưa cập nhật địa chỉ"}
+                {order.rentalAddress || order.user?.address || "Chưa cập nhật địa chỉ"}
               </p>
-              {order.note && (
+              {(order.rentalStartDate || order.rentalEndDate) && (
+                <div className="mt-3 space-y-1">
+                  {order.rentalStartDate && (
+                    <p>
+                      <span className="font-semibold text-slate-800">Ngày bắt đầu:</span>{" "}
+                      {formatDateTime(order.rentalStartDate)}
+                    </p>
+                  )}
+                  {order.rentalEndDate && (
+                    <p>
+                      <span className="font-semibold text-slate-800">Ngày kết thúc:</span>{" "}
+                      {formatDateTime(order.rentalEndDate)}
+                    </p>
+                  )}
+                </div>
+              )}
+              {order.notes && (
                 <p className="mt-3">
                   <span className="font-semibold text-slate-800">
                     Ghi chú:
                   </span>{" "}
-                  <span>{order.note}</span>
+                  <span>{order.notes}</span>
                 </p>
               )}
             </div>
@@ -706,14 +561,14 @@ export default function OrderDetailPage() {
             <p className="text-sm text-slate-600">
               Trạng thái:{" "}
               <span className="font-semibold text-slate-900">
-                {paymentStatusLabel[order.paymentStatus] || order.paymentStatus}
+                {paymentStatusText}
               </span>
             </p>
-            {order.transactionId && (
+            {transactionId && (
               <p className="text-sm text-slate-600">
                 Mã giao dịch:{" "}
                 <span className="font-semibold text-slate-900">
-                  {order.transactionId}
+                  {transactionId}
                 </span>
               </p>
             )}
@@ -721,17 +576,19 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Section Bình luận - Chỉ hiển thị khi có tab=review hoặc luôn hiển thị */}
-      {(activeTab === "review" || !activeTab) && (
-        <div
-          data-review-section
-          className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
+      {/* Review Section - Hiển thị khi thanh toán thành công hoặc đơn hàng đã được xác nhận */}
+      {canReview && (
+        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-rose-500" />
+            <MessageSquare className="h-5 w-5 text-green-600" />
             <h2 className="text-lg font-semibold text-slate-900">
               Đánh giá sản phẩm
             </h2>
+            {isOrderFullyCommented && (
+              <Badge className="bg-green-100 text-green-800 border-0 px-3 py-1 text-xs font-medium rounded-full">
+                Đã bình luận hết
+              </Badge>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -740,28 +597,23 @@ export default function OrderDetailPage() {
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Chọn sản phẩm để đánh giá <span className="text-red-500">*</span>
               </label>
-              {availableItems.length === 0 ? (
+              {availableProductsForReview.length === 0 ? (
                 <div className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  Bạn đã đánh giá tất cả sản phẩm trong đơn hàng này.
+                  Không có sản phẩm để đánh giá.
                 </div>
               ) : (
                 <select
-                  value={selectedPetId}
-                  onChange={(e) => setSelectedPetId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                  value={selectedProductId}
+                  onChange={(e) => setSelectedProductId(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
                 >
                   <option value="">-- Chọn sản phẩm --</option>
-                  {availableItems.map((item) => (
-                    <option key={item.petId} value={item.petId}>
-                      {item.petName} (×{item.quantity})
+                  {availableProductsForReview.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
                     </option>
                   ))}
                 </select>
-              )}
-              {reviewedPetIds.size > 0 && (
-                <p className="mt-2 text-xs text-slate-500">
-                  Đã đánh giá {reviewedPetIds.size}/{orderItems.length} sản phẩm trong đơn hàng này
-                </p>
               )}
             </div>
 
@@ -776,7 +628,7 @@ export default function OrderDetailPage() {
                     key={star}
                     type="button"
                     onClick={() => setRating(star)}
-                    className="focus:outline-none"
+                    className="focus:outline-none transition-transform hover:scale-110"
                   >
                     <Star
                       size={32}
@@ -807,45 +659,84 @@ export default function OrderDetailPage() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                className="min-h-[120px] resize-none border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-200"
+                className="min-h-[120px] resize-none border-slate-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
               />
+              <p className="mt-1 text-xs text-slate-500">
+                Tối thiểu 10 ký tự
+              </p>
             </div>
 
             {/* Upload ảnh */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
-                Ảnh đánh giá (tùy chọn)
+                Ảnh đánh giá (tùy chọn, tối đa 5 ảnh)
               </label>
-              {!imagePreview ? (
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 transition-colors hover:border-rose-300 hover:bg-rose-50">
+              {reviewImages.length === 0 ? (
+                <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <Upload className="h-5 w-5" />
-                  <span>Chọn ảnh để đính kèm</span>
+                  <span>{isUploading ? 'Đang upload...' : 'Chọn ảnh để đính kèm'}</span>
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleImageChange}
+                    disabled={isUploading}
                     className="hidden"
                   />
                 </label>
               ) : (
-                <div className="relative inline-block">
-                  <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-slate-300">
-                    <Image
-                      src={imagePreview}
-                      alt="Preview"
-                      fill
-                      className="object-cover"
-                    />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-slate-300">
+                          <Image
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                          {index < uploadedImageUrls.length && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-green-500/80 text-white text-xs text-center py-1">
+                              Đã upload
+                            </div>
+                          )}
+                          {isUploading && index >= uploadedImageUrls.length && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 transition-colors"
+                          disabled={isUploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-                  >
-                    <X size={16} />
-                  </button>
+                  {reviewImages.length < 5 && (
+                    <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <Upload className="h-4 w-4" />
+                      <span>Thêm ảnh ({reviewImages.length}/5)</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageChange}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
               )}
+              <p className="mt-1 text-xs text-slate-500">
+                Kích thước tối đa 10MB mỗi ảnh. Ảnh sẽ được upload tự động khi chọn.
+              </p>
             </div>
 
             {/* Nút submit */}
@@ -853,7 +744,7 @@ export default function OrderDetailPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSelectedPetId("");
+                  setSelectedProductId("");
                   setRating(5);
                   setComment("");
                   setReviewImage(null);
@@ -866,10 +757,10 @@ export default function OrderDetailPage() {
               </Button>
               <Button
                 onClick={handleSubmitReview}
-                disabled={isSubmitting || !selectedPetId || !comment.trim()}
-                className="rounded-full bg-rose-500 px-8 text-white hover:bg-rose-600 disabled:opacity-50"
+                disabled={isSubmitting || isUploading || !selectedProductId || !comment.trim()}
+                className="rounded-full bg-green-600 px-8 text-white hover:bg-green-700 disabled:opacity-50"
               >
-                {isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
+                {isSubmitting ? "Đang gửi..." : isUploading ? "Đang upload ảnh..." : "Gửi đánh giá"}
               </Button>
             </div>
           </div>
@@ -879,11 +770,12 @@ export default function OrderDetailPage() {
       <div className="mt-8">
         <Button
           variant="outline"
-          className="rounded-full"
+          className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
           onClick={() => router.push("/orders")}
         >
           Quay lại đơn hàng
         </Button>
+      </div>
       </div>
 
       {/* Toast Container */}

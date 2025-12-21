@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useRouter } from 'next/navigation'
 
 const Slideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const router = useRouter()
   const { theme } = useTheme()
 
   const slides = [
@@ -153,7 +155,8 @@ const Slideshow = () => {
                   transition={{ duration: 0.6, delay: 1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group ${
+                  onClick={() => router.push('/product')}
+                  className={`px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group cursor-pointer ${
                     theme === 'dark' 
                       ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700' 
                       : 'bg-white text-gray-800 hover:bg-gray-50'

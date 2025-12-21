@@ -50,9 +50,17 @@ const Notification: React.FC<NotificationProps> = ({
     loading: 'text-gray-900',
   };
 
+  const progressColors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500',
+    loading: 'bg-gray-500',
+  };
+
   return (
     <div
-      className={`${bgColors[type]} ${textColors[type]} border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md animate-in slide-in-from-right duration-300`}
+      className={`${bgColors[type]} ${textColors[type]} border rounded-lg shadow-lg p-4 min-w-[320px] max-w-md animate-in slide-in-from-right duration-300 relative overflow-hidden`}
     >
       <div className="flex items-start gap-3">
         {showIcon && icons[type]}
@@ -69,6 +77,29 @@ const Notification: React.FC<NotificationProps> = ({
           </button>
         )}
       </div>
+      
+      {/* Progress bar */}
+      {duration && type !== 'loading' && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/10">
+          <div 
+            className={`h-full ${progressColors[type]}`}
+            style={{
+              animation: `shrink ${duration}ms linear forwards`
+            }}
+          />
+        </div>
+      )}
+      
+      <style jsx>{`
+        @keyframes shrink {
+          from {
+            width: 100%;
+          }
+          to {
+            width: 0%;
+          }
+        }
+      `}</style>
     </div>
   );
 };
