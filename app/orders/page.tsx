@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +73,7 @@ const buildSummary = (order: Order) => {
 
 export default function OrdersPage() {
   const [page, setPage] = useState(0);
+  const [filterType, setFilterType] = useState<'all' | 'commented' | 'not-commented'>('all');
 
   const { isAuthenticated } = useAuthStore();
 
@@ -81,6 +82,10 @@ export default function OrdersPage() {
   const { data: ordersData, error, isLoading, mutate } = useSWRFetch<Order[]>(
     ordersEndpoint
   );
+
+  // Fetch comments của user để check trạng thái comment
+  const commentsEndpoint = isAuthenticated ? `${API_URL}/comments/user/me` : null;
+  const { data: commentsData } = useSWRFetch<any[]>(commentsEndpoint);
 
   // Debug: Log response để kiểm tra
   useMemo(() => {
@@ -110,7 +115,7 @@ export default function OrdersPage() {
   }, [error]);
 
   // Xử lý pagination ở frontend
-  const orders = useMemo(() => {
+  const allOrders = useMemo(() => {
     if (!ordersData) return [];
     
     // Nếu là array, trả về trực tiếp
@@ -127,9 +132,57 @@ export default function OrdersPage() {
     return [];
   }, [ordersData]);
 
-  // Tính toán pagination
+  // Tạo map comments theo orderId và productId
+  const commentsByOrder = useMemo(() => {
+    if (!commentsData || !Array.isArray(commentsData)) return new Map<string, Set<string>>();
+    
+    const map = new Map<string, Set<string>>();
+    commentsData.forEach((comment: any) => {
+      if (comment.orderId && comment.productId) {
+        if (!map.has(comment.orderId)) {
+          map.set(comment.orderId, new Set());
+        }
+        map.get(comment.orderId)!.add(comment.productId);
+      }
+    });
+    return map;
+  }, [commentsData]);
+
+  // Check xem order đã comment hết chưa (tất cả sản phẩm đều có comment)
+  const isOrderFullyCommented = useMemo(() => {
+    return (order: Order): boolean => {
+      if (!order.orderItems || order.orderItems.length === 0) return false;
+      const commentedProducts = commentsByOrder.get(order.id) || new Set();
+      const allProductIds = new Set(order.orderItems.map(item => item.productId));
+      return allProductIds.size > 0 && Array.from(allProductIds).every(id => commentedProducts.has(id));
+    };
+  }, [commentsByOrder]);
+
+  // Filter orders theo filterType
+  const orders = useMemo(() => {
+    if (filterType === 'all') return allOrders;
+    
+    return allOrders.filter((order: Order) => {
+      const fullyCommented = isOrderFullyCommented(order);
+      if (filterType === 'commented') {
+        return fullyCommented;
+      } else if (filterType === 'not-commented') {
+        return !fullyCommented;
+      }
+      return true;
+    });
+  }, [allOrders, filterType, isOrderFullyCommented]);
+
+  // Tính toán pagination dựa trên filtered orders
   const totalElements = orders.length;
   const totalPages = Math.max(1, Math.ceil(orders.length / pageSize));
+  
+  // Reset page về 0 khi filter thay đổi hoặc khi page vượt quá totalPages
+  useEffect(() => {
+    if (page >= totalPages && totalPages > 0) {
+      setPage(0);
+    }
+  }, [filterType, totalPages, page]);
   
   // Lấy orders cho trang hiện tại
   const paginatedOrders = useMemo(() => {
@@ -199,10 +252,53 @@ export default function OrdersPage() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <p className="text-sm text-gray-600">
             Tổng cộng {totalElements} đơn đã đặt
           </p>
+          
+          {/* Filter tabs */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => {
+                setFilterType('all');
+                setPage(0);
+              }}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                filterType === 'all'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Tất cả ({allOrders.length})
+            </button>
+            <button
+              onClick={() => {
+                setFilterType('commented');
+                setPage(0);
+              }}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                filterType === 'commented'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Đã bình luận ({allOrders.filter((o: Order) => isOrderFullyCommented(o)).length})
+            </button>
+            <button
+              onClick={() => {
+                setFilterType('not-commented');
+                setPage(0);
+              }}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                filterType === 'not-commented'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Chưa bình luận ({allOrders.filter((o: Order) => !isOrderFullyCommented(o)).length})
+            </button>
+          </div>
         </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -260,7 +356,7 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell className="px-6 py-6">
                       <Badge
-                        className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-3 py-1 text-xs font-medium rounded-full`}
+                        className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-3 py-1 text-xs font-medium rounded-full ${order.status?.toLowerCase() === 'confirmed' ? 'hover:bg-green-100' : ''} cursor-default`}
                       >
                         {statusLabel[order.status?.toLowerCase()] || order.status}
                       </Badge>

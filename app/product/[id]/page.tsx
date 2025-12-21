@@ -1,13 +1,17 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Heart, Minus, Plus, Star, ShoppingCart } from "lucide-react"
 import { useCart } from "@/store/useCartStore"
+import { useAuthStore } from "@/store/useAuthStore"
 import Image from "next/image"
 import { useSWRFetch } from "@/app/hooks/useSWRFetch"
 import { Product } from "@/types"
 import ReviewSection from "@/app/product/_components/ReviewSection"
+import { Loading } from "@/app/_components/loading"
+import { favoritesAPI } from "@/lib/api/favorites"
+import { useToast } from "@/app/hooks/useToast"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'
@@ -108,13 +112,33 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   
   const { addItem, openMiniCart } = useCart()
+  const { isAuthenticated, token } = useAuthStore()
+  const { success, warning, ToastContainer } = useToast()
   
   // Fetch product từ backend
   const { data: backendProduct, error, isLoading } = useSWRFetch<Product>(
     productId ? `${API_URL}/products/${productId}` : null
   )
+
+  // Check favorite status
+  const { data: favoriteStatus } = useSWRFetch<boolean>(
+    isAuthenticated && token && productId 
+      ? `${API_URL}/favorites/check/${productId}` 
+      : null,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    }
+  )
+
+  // Update isWishlisted khi favoriteStatus thay đổi
+  useEffect(() => {
+    if (favoriteStatus !== undefined) {
+      setIsWishlisted(favoriteStatus)
+    }
+  }, [favoriteStatus])
 
   // Transform backend data sang format UI
   const product = useMemo(() => {
@@ -151,14 +175,7 @@ export default function ProductDetailPage() {
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải sản phẩm...</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullpage" text="Đang tải sản phẩm..." />
   }
 
   // Error state - Fallback to backup data
@@ -191,12 +208,17 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product) return
     
+    // Sử dụng discountPrice nếu có và > 0, nếu không thì dùng price
+    const finalPrice = product.discountPrice && product.discountPrice > 0
+      ? product.discountPrice
+      : product.price
+    
     addItem({ 
       id: product.id,
       name: product.name, 
       image: product.image,
       originalPrice: product.price,
-      salePrice: product.discountPrice || product.price,
+      salePrice: finalPrice,
       quantity: quantity
     })
     openMiniCart()
@@ -205,12 +227,17 @@ export default function ProductDetailPage() {
   const handleBuyNow = () => {
     if (!product) return
     
+    // Sử dụng discountPrice nếu có và > 0, nếu không thì dùng price
+    const finalPrice = product.discountPrice && product.discountPrice > 0
+      ? product.discountPrice
+      : product.price
+    
     addItem({ 
       id: product.id,
       name: product.name, 
       image: product.image,
       originalPrice: product.price,
-      salePrice: product.discountPrice || product.price,
+      salePrice: finalPrice,
       quantity: quantity
     })
     // Redirect to cart or checkout page
@@ -326,9 +353,6 @@ export default function ProductDetailPage() {
                     <span className="text-xl text-gray-400 line-through">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
-                      -{Math.round((1 - product.discountPrice / product.price) * 100)}%
-                    </span>
                   </>
                 ) : (
                   <span className="text-3xl font-bold text-green-600">
@@ -390,10 +414,39 @@ export default function ProductDetailPage() {
 
                 {/* Wishlist Button */}
                 <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className="p-3 bg-gray-100 border border-gray-200 rounded-full transition-all duration-300 hover:bg-gray-200 group"
+                  onClick={async () => {
+                    if (!isAuthenticated) {
+                      warning("Cần đăng nhập", "Vui lòng đăng nhập để thêm vào yêu thích");
+                      return;
+                    }
+                    if (!token) {
+                      warning("Lỗi xác thực", "Vui lòng đăng nhập lại");
+                      return;
+                    }
+                    
+                    setIsTogglingFavorite(true);
+                    try {
+                      const result = await favoritesAPI.toggle(productId, token);
+                      setIsWishlisted(result.action === 'Added');
+                      success(
+                        result.action === 'Added' ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích',
+                        result.message
+                      );
+                    } catch (error: any) {
+                      warning("Lỗi", error.message || "Không thể cập nhật yêu thích");
+                    } finally {
+                      setIsTogglingFavorite(false);
+                    }
+                  }}
+                  disabled={isTogglingFavorite || !isAuthenticated}
+                  className={`p-3 bg-gray-100 border border-gray-200 rounded-full transition-all duration-300 hover:bg-gray-200 group ${
+                    isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  <Heart size={20} className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400 group-hover:text-red-500"} />
+                  <Heart 
+                    size={20} 
+                    className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400 group-hover:text-red-500"} 
+                  />
                 </button>
               </div>
 
@@ -440,6 +493,8 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 pb-12">
         <ReviewSection productId={productId} />
       </div>
+
+      <ToastContainer />
     </div>
   )
 }

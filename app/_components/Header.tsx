@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart } from "lucide-react"
+import { Moon, Sun, ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart, Package, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useCart } from "@/store/useCartStore"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -250,16 +250,37 @@ const Header = () => {
             {/* User Account */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className={`h-9 w-9 p-0 transition-all duration-200 hover:scale-110 ${
+                <Button variant="ghost" size="sm" className={`h-9 px-2 transition-all duration-200 hover:scale-105 flex items-center gap-1.5 ${
                   theme === 'dark' 
                     ? 'hover:bg-green-800 hover:text-green-300 text-gray-300' 
                     : 'hover:bg-green-50 hover:text-green-700 text-gray-700'
                 }`}>
-                  <User className="h-5 w-5" />
+                  {isAuthenticated && user ? (
+                    user.avatar ? (
+                      <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+                        <Image
+                          src={user.avatar}
+                          alt={user.fullName || "User"}
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : user.fullName ? (
+                      <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold text-xs">
+                        {user.fullName.charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                  <ChevronDown className="h-4 w-4" />
                   <span className="sr-only">Tài khoản</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={`w-56 z-[60] ${
+              <DropdownMenuContent align="end" alignOffset={-150} className={`w-56 z-[60] ${
                 theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
               }`}>
                 {!isAuthenticated ? (
@@ -316,39 +337,26 @@ const Header = () => {
                       <User className="mr-2 h-4 w-4" />
                       <span>Hồ sơ của tôi</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
-                      <span className="mr-2">📦</span>
+                    <DropdownMenuItem 
+                      className={`transition-colors duration-200 ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
+                      }`}
+                      onClick={() => router.push('/orders')}
+                    >
+                      <Package className="mr-2 h-4 w-4" />
                       <span>Đơn hàng</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
-                      <span className="mr-2">❤️</span>
-                      <span>Yêu thích</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
-                      <span className="mr-2">⚙️</span>
-                      <span>Cài đặt</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       className={`transition-colors duration-200 ${
                         theme === 'dark' 
-                          ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
-                          : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                          ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
                       }`}
                       onClick={handleLogout}
                     >
-                      <span className="mr-2">🚪</span>
+                      <LogOut className="mr-2 h-4 w-4" />
                       <span>Đăng xuất</span>
                     </DropdownMenuItem>
                   </>

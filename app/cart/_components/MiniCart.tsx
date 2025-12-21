@@ -161,23 +161,12 @@ const MiniCart: React.FC<MiniCartProps> = ({ isOpen, onClose }) => {
 
             {/* Action Buttons */}
             <div>
-              <Link href="/cart" onClick={animatedClose}>
-                <button className="w-full py-2 px-4 rounded-full font-medium transition-all duration-300 text-gray-800 hover:text-white bg-[#f9f5f0] hover:bg-green-600 group relative overflow-hidden cursor-pointer">
-                  <span className="relative overflow-hidden block h-6">
-                    <span className="absolute inset-0 flex items-center justify-center transform transition-transform duration-300 group-hover:-translate-y-full">
-                      Xem giỏ hàng
-                    </span>
-                    <span className="absolute inset-0 flex items-center justify-center transform translate-y-full transition-transform duration-300 group-hover:translate-y-0">
-                      Xem giỏ hàng
-                    </span>
-                  </span>
-                </button>
-              </Link>
               <button 
                 onClick={() => {
                   animatedClose()
+                  setTimeout(() => router.push('/cart'), 200)
                 }}
-                className="w-full py-2 px-4 rounded-full font-medium transition-colors duration-300 bg-green-600 text-white hover:bg-black mt-4 cursor-pointer shadow"
+                className="w-full py-2 px-4 rounded-full font-medium transition-colors duration-300 bg-green-600 text-white hover:bg-black cursor-pointer shadow"
               >
                 Thanh toán
               </button>

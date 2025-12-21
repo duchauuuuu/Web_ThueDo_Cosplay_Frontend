@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/useCartStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useFavoriteStore } from '@/store/useFavoriteStore'
 import { useToast } from '@/app/hooks/useToast'
+import { Loading } from '@/app/_components/loading'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg'

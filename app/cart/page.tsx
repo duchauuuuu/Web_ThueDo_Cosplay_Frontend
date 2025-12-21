@@ -14,6 +14,7 @@ import { Product } from '@/types'
 import type { User } from '@/types/user'
 import type { Address } from '@/types/address'
 import type { Order } from '@/types/order'
+import { Loading } from '@/app/_components/loading'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 
@@ -86,13 +87,13 @@ const CartPage = () => {
 
   // Fetch user profile
   // Backend endpoint: GET /users/profile trả về User object trực tiếp
-  const { data: userProfile, error: profileError } = useSWRFetch<User>(
+  const { data: userProfile, error: profileError, isLoading: profileLoading } = useSWRFetch<User>(
     isAuthenticated ? `${API_URL}/users/profile` : null
   )
 
   // Fetch user addresses
   // Backend endpoint: GET /addresses trả về Address[] trực tiếp
-  const { data: userAddresses, error: addressesError } = useSWRFetch<Address[]>(
+  const { data: userAddresses, error: addressesError, isLoading: addressesLoading } = useSWRFetch<Address[]>(
     isAuthenticated ? `${API_URL}/addresses` : null
   )
 
@@ -404,7 +405,8 @@ const CartPage = () => {
         rentalAddress: customerInfo.deliveryType === 'home' 
           ? `${customerInfo.address}, ${customerInfo.district}, ${mapValueToProvince(customerInfo.province)}`
           : 'Số 12 Nguyễn Văn Bảo, P. Hạnh Thông, Quận Gò Vấp, Thành phố Hồ Chí Minh',
-        notes: customerInfo.note || ''
+        notes: customerInfo.note || '',
+        paymentMethod: customerInfo.paymentMethod // Thêm paymentMethod để backend xử lý
       }
 
       console.log('📦 Creating order with data:', {
@@ -420,31 +422,29 @@ const CartPage = () => {
 
       // Nếu payment method là bank, tạo payment và redirect đến trang thanh toán
       if (customerInfo.paymentMethod === 'bank') {
-        try {
-          const paymentResult = await apiClient.post('/payments', {
-            orderId: orderResult.id,
-            method: 'sepay' // Backend dùng 'sepay' thay vì 'bank_transfer'
-          })
-
-          // Clear giỏ hàng
-          clearCart()
-
-          // Hiển thị thông báo thành công
-          success('Đặt hàng thành công', 'Vui lòng thanh toán để hoàn tất đơn hàng')
-          
-          // Redirect đến trang thanh toán
-          setTimeout(() => {
-            router.push(`/payment/${orderResult.id}`)
-          }, 2000)
-        } catch (paymentError: any) {
+        // Clear giỏ hàng
+        clearCart()
+        
+        // Hiển thị thông báo "Đang hiển thị mã QR" ngay lập tức
+        success('Đặt hàng thành công', 'Đang hiển thị mã QR...')
+        
+        // Redirect ngay đến trang thanh toán (dù payment có tạo thành công hay không)
+        console.log('🔄 Redirecting to payment page:', `/payment/${orderResult.id}`)
+        router.push(`/payment/${orderResult.id}`)
+        
+        // Tạo payment trong background (không chặn redirect)
+        apiClient.post('/payments', {
+          orderId: orderResult.id,
+          method: 'sepay' // Backend dùng 'sepay' thay vì 'bank_transfer'
+        }).then((paymentResult) => {
+          console.log('✅ Payment created successfully:', paymentResult)
+        }).catch((paymentError: any) => {
           console.error('❌ Payment Creation Error:', paymentError)
-          // Nếu tạo payment lỗi, vẫn redirect đến orders
-          clearCart()
-          success('Đặt hàng thành công', 'Đơn hàng của bạn đã được tạo thành công. Vui lòng thanh toán sau.')
-          setTimeout(() => {
-            router.push('/orders')
-          }, 2000)
-        }
+          console.error('❌ Payment Error Details:', paymentError?.response?.data || paymentError?.message)
+          // Payment sẽ được tạo lại khi user vào trang payment
+        })
+        
+        return // Đảm bảo không chạy code phía dưới
       } else {
         // Nếu là cash (COD - Cash on Delivery)
         // Đơn hàng đã được tạo ở trên, chỉ cần clear cart và redirect
@@ -495,6 +495,18 @@ const CartPage = () => {
     }
   }
 
+  // Loading state - hiển thị loading khi đang fetch user data (chỉ khi đã đăng nhập)
+  // Phải đặt sau tất cả hooks để tuân thủ Rules of Hooks
+  if (isAuthenticated && (profileLoading || addressesLoading)) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <Loading variant="fullpage" />
+        </div>
+      </div>
+    );
+  }
+
   const getDistricts = () => {
     if (customerInfo.deliveryType === 'store') {
       return ['P. Hạnh Thông']
@@ -525,11 +537,7 @@ const CartPage = () => {
 
   const handleClearAll = () => {
     if (items.length === 0) return
-    
-    if (window.confirm('Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?')) {
-      clearCart()
-      success('Đã xóa tất cả', 'Tất cả sản phẩm đã được xóa khỏi giỏ hàng')
-    }
+    clearCart()
   }
 
   return (

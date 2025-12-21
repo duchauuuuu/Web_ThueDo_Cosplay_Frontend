@@ -10,6 +10,7 @@ import ProductCard from "@/app/_components/ProductCard";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
 import { useToast } from "@/app/hooks/useToast";
 import { ProductsResponse, Category } from "@/types";
+import { Loading } from "@/app/_components/loading";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
@@ -69,6 +70,11 @@ export default function ProductPage() {
       const { favoritesAPI } = await import("@/lib/api/favorites");
       const result = await favoritesAPI.toggle(productId.toString(), token!);
 
+      // Refresh favorites list from backend
+      if (mutateFavorites) {
+        await mutateFavorites();
+      }
+
       if (result.action === 'Added') {
         // Add to local store
         if (productData) {
@@ -120,6 +126,18 @@ export default function ProductPage() {
   // Fetch categories from API
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWRFetch<Category[]>(`${API_URL}/categories`);
 
+  // Fetch favorites from backend
+  const { data: favoritesData, mutate: mutateFavorites } = useSWRFetch<any[]>(
+    isAuthenticated && token ? `${API_URL}/favorites` : null,
+    token ? { Authorization: `Bearer ${token}` } : undefined
+  );
+
+  // Create a Set of favorite product IDs for quick lookup
+  const favoriteProductIds = useMemo(() => {
+    if (!favoritesData) return new Set<string>();
+    return new Set(favoritesData.map((fav: any) => fav.productId || fav.product?.id));
+  }, [favoritesData]);
+
   // Calculate max price from data or use default (2 triệu)
   const maxPrice = useMemo(() => {
     if (!data?.data || data.data.length === 0) return 2000000;
@@ -141,6 +159,11 @@ export default function ProductPage() {
     if (!data?.data) return [];
     
     let filtered = data.data;
+
+    // Filter chỉ lấy sản phẩm còn số lượng
+    filtered = filtered.filter(product => {
+      return product.quantity > 0 && product.isAvailable === true;
+    });
 
     // Client-side price filter (because backend might not support it)
     filtered = filtered.filter(product => {
@@ -213,11 +236,7 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen bg-white">
         <div className="mx-auto max-w-7xl px-6 py-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-            {[...Array(9)].map((_, i) => (
-              <div key={i} className="h-96 bg-gray-200 animate-pulse rounded-lg" />
-            ))}
-          </div>
+          <Loading variant="skeleton" skeletonCount={9} />
         </div>
       </div>
     );
@@ -484,6 +503,7 @@ export default function ProductPage() {
                           });
                           openMiniCart();
                         }}
+                        isFavorite={favoriteProductIds.has(backendProduct.id)}
                         onFavorite={() => handleFavorite(backendProduct.id, backendProduct)}
                         onView={() => router.push(`/product/${backendProduct.id}`)}
                       />

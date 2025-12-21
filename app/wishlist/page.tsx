@@ -10,6 +10,7 @@ import { useToast } from "@/app/hooks/useToast";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
 import { Category } from "@/types";
 import Image from "next/image";
+import { Loading } from "@/app/_components/loading";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
@@ -177,6 +178,17 @@ export default function WishlistPage() {
       }, 1500);
     }
   }, [isAuthenticated, router, showError]);
+
+  // Loading state - hiển thị loading khi đang fetch data
+  if (favoritesLoading || categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <Loading variant="fullpage" text="Đang tải danh sách yêu thích..." />
+        </div>
+      </div>
+    );
+  }
 
   // Tính max price từ favorites
   const maxPrice = useMemo(() => {

@@ -8,6 +8,7 @@ import type { Order } from '@/types/order'
 import { PaymentMethod, PaymentStatus } from '@/types/order'
 import { CheckCircle, Copy, ArrowLeft, Clock, AlertCircle } from 'lucide-react'
 import { useToast } from '@/app/hooks/useToast'
+import { Loading } from '@/app/_components/loading'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 
@@ -45,35 +46,27 @@ export default function PaymentPage() {
   const payment = paymentsData && paymentsData.length > 0 ? paymentsData[0] : null
 
   // Tính toán và đếm ngược thời gian thanh toán (10 phút)
+  // Luôn bắt đầu từ 10 phút khi vào trang, không phụ thuộc vào createdAt
   useEffect(() => {
-    if (!order?.createdAt) return
+    // Bắt đầu từ 10 phút (600 giây)
+    setTimeLeft(10 * 60)
 
-    const calculateTimeLeft = () => {
-      const createdAt = new Date(order.createdAt).getTime()
-      const now = new Date().getTime()
-      const elapsed = Math.floor((now - createdAt) / 1000) // Thời gian đã trôi qua (giây)
-      const totalTime = 10 * 60 // 10 phút = 600 giây
-      const remaining = Math.max(0, totalTime - elapsed)
-      return remaining
-    }
-
-    // Tính thời gian còn lại ngay lập tức
-    setTimeLeft(calculateTimeLeft())
+    let currentTime = 10 * 60 // Bắt đầu từ 10 phút
 
     // Cập nhật mỗi giây
     const interval = setInterval(() => {
-      const remaining = calculateTimeLeft()
-      setTimeLeft(remaining)
+      currentTime = Math.max(0, currentTime - 1)
+      setTimeLeft(currentTime)
 
       // Nếu hết thời gian, hiển thị thông báo
-      if (remaining === 0) {
+      if (currentTime === 0) {
         showError('Hết thời gian thanh toán', 'Thời gian thanh toán đã hết. Vui lòng tạo đơn hàng mới.')
         clearInterval(interval)
       }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [order?.createdAt, showError])
+  }, [showError])
 
   // Thông báo & redirect khi thanh toán thành công hoặc thất bại (chỉ 1 lần)
   useEffect(() => {
@@ -87,9 +80,10 @@ export default function PaymentPage() {
       )
 
       setHasShownPaymentToast(true)
+      // Redirect ngay sau 2 giây thay vì 4 giây
       setTimeout(() => {
         router.push(`/orders`)
-      }, 4000)
+      }, 2000)
       return
     }
 
@@ -125,8 +119,13 @@ export default function PaymentPage() {
     }
   }
 
-  // Parse QR code URL từ sepayResponse (nếu có)
+  // Lấy QR code từ payment (backend đã trả về qrCode hoặc qrCodeUrl)
   const getPaymentUrl = () => {
+    // Ưu tiên dùng qrCode hoặc qrCodeUrl từ backend
+    if (payment?.qrCode) return payment.qrCode
+    if (payment?.qrCodeUrl) return payment.qrCodeUrl
+    
+    // Fallback: parse từ sepayResponse nếu backend chưa trả về
     if (!payment?.sepayResponse) return null
     try {
       const sepayData = typeof payment.sepayResponse === 'string' 
@@ -138,7 +137,25 @@ export default function PaymentPage() {
     }
   }
 
+  // Lấy nội dung chuyển khoản từ payment (orderInfo từ backend)
+  const getPaymentContent = () => {
+    // Ưu tiên dùng orderInfo từ backend response
+    if (payment?.orderInfo) return payment.orderInfo
+    
+    // Fallback: parse từ sepayResponse
+    if (!payment?.sepayResponse) return null
+    try {
+      const sepayData = typeof payment.sepayResponse === 'string' 
+        ? JSON.parse(payment.sepayResponse) 
+        : payment.sepayResponse
+      return sepayData?.orderInfo || null
+    } catch {
+      return null
+    }
+  }
+
   const paymentUrl = getPaymentUrl()
+  const paymentContent = getPaymentContent()
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -162,14 +179,7 @@ export default function PaymentPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải thông tin thanh toán...</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullpage" />
   }
   
   if (error) {
@@ -191,25 +201,45 @@ export default function PaymentPage() {
 
   if (!order) return null
 
+  // Nếu payment đã completed, redirect ngay không hiển thị gì
+  if (payment && payment.status === 'completed') {
+    return <Loading variant="fullpage" />
+  }
+
   // Kiểm tra payment - chỉ hiển thị trang thanh toán nếu có payment với method SEPAY và có QR code
   if (!payment || payment.method !== 'sepay' || !paymentUrl) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            {!payment ? 'Đang tải thông tin thanh toán...' : 'Đơn hàng không cần thanh toán online hoặc chưa có QR code'}
-          </h2>
-          {payment && payment.method === 'cash' && (
-            <button
-              onClick={() => router.push('/orders')}
-              className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
-            >
-              Xem đơn hàng
-            </button>
-          )}
+    // Nếu chưa có payment, hiển thị loading
+    if (!payment) {
+      return <Loading variant="fullpage" />
+    }
+    
+    // Nếu có payment nhưng không phải sepay hoặc không có QR code, redirect về orders
+    if (payment && (payment.method !== 'sepay' || !paymentUrl)) {
+      // Nếu payment đã failed hoặc refunded, chỉ redirect không hiển thị thông báo
+      if (payment.status === 'failed' || payment.status === 'refunded') {
+        return <Loading variant="fullpage" />
+      }
+      
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Đơn hàng không cần thanh toán online hoặc chưa có QR code
+            </h2>
+            {payment.method === 'cash' && (
+              <button
+                onClick={() => router.push('/orders')}
+                className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
+              >
+                Xem đơn hàng
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
+    
+    return <Loading variant="fullpage" />
   }
 
   return (
@@ -285,7 +315,7 @@ export default function PaymentPage() {
                   />
                 ) : (
                   <div className="w-80 h-80 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500">Đang tải QR code...</p>
+                    <Loading variant="inline" />
                   </div>
                 )}
               </div>
@@ -336,10 +366,10 @@ export default function PaymentPage() {
               <div className="flex items-center justify-between pb-3 border-b">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">Số tiền:</div>
-                  <div className="font-semibold text-gray-800">{payment.amount?.toLocaleString('vi-VN') || order.totalAmount.toLocaleString('vi-VN')} vnd</div>
+                  <div className="font-semibold text-gray-800">{payment.amount?.toLocaleString('vi-VN') || (order.totalAmount || 0).toLocaleString('vi-VN')} vnd</div>
                 </div>
                 <button
-                  onClick={() => handleCopy(payment.amount?.toString() || order.totalAmount.toString(), 'Số tiền')}
+                  onClick={() => handleCopy(payment.amount?.toString() || (order.totalAmount || 0).toString(), 'Số tiền')}
                   className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
                 >
                   Sao chép
@@ -350,10 +380,10 @@ export default function PaymentPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">Nội dung:</div>
-                  <div className="font-semibold text-gray-800 break-all">{payment.transactionId || order.orderNumber}</div>
+                  <div className="font-semibold text-gray-800 break-all">{paymentContent || payment.transactionId || order.orderNumber}</div>
                 </div>
                 <button
-                  onClick={() => handleCopy(payment.transactionId || order.orderNumber || '', 'Nội dung')}
+                  onClick={() => handleCopy(paymentContent || payment.transactionId || order.orderNumber || '', 'Nội dung')}
                   className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors ml-2 cursor-pointer border border-green-200"
                 >
                   Sao chép
@@ -366,8 +396,8 @@ export default function PaymentPage() {
           <div className="mt-6">
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-sm text-gray-700">
-                <strong>Lưu ý :</strong> Nhập chính xác số tiền <strong>{(payment.amount || order.totalAmount).toLocaleString('vi-VN')}</strong>, nội dung{' '}
-                <strong>{payment.transactionId || order.orderNumber}</strong> khi chuyển khoản
+                <strong>Lưu ý :</strong> Nhập chính xác số tiền <strong>{(payment.amount || order.totalAmount || 0).toLocaleString('vi-VN')}</strong>, nội dung{' '}
+                <strong>{paymentContent || payment.transactionId || order.orderNumber}</strong> khi chuyển khoản
               </p>
             </div>
           </div>

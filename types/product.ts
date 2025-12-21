@@ -26,6 +26,7 @@ export type ProductCardProps = {
   hoverImage?: string;
   discount?: number;
   className?: string;
+  isFavorite?: boolean;
   onAddToCart?: (id: string | number) => void;
   onFavorite?: (id: string | number) => void;
   onView?: (id: string | number) => void;

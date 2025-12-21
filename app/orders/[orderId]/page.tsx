@@ -22,6 +22,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useToast } from "@/app/hooks/useToast";
 import { useSWRFetch } from "@/app/hooks/useSWRFetch";
 import type { Order, OrderItem } from "@/types/order";
+import { uploadImage } from "@/lib/api/upload";
+import { apiClient } from "@/lib/api/fetch-with-auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
@@ -109,6 +111,22 @@ export default function OrderDetailPage() {
     mutate,
   } = useSWRFetch<Order>(orderEndpoint);
 
+  // Fetch payment cho order này
+  const { data: paymentsData } = useSWRFetch<any[]>(
+    orderId ? `${API_URL}/payments/order/${orderId}` : null
+  );
+
+  // Fetch comments cho order này
+  const { data: commentsData, mutate: mutateComments } = useSWRFetch<any[]>(
+    orderId ? `${API_URL}/comments/order/${orderId}` : null
+  );
+
+  // Lấy payment đầu tiên (thường chỉ có 1 payment cho 1 order)
+  const payment = paymentsData && paymentsData.length > 0 ? paymentsData[0] : null;
+  
+  // Lấy danh sách comments
+  const comments = commentsData || [];
+
   // Debug: Log order data
   useMemo(() => {
     if (order) {
@@ -120,29 +138,58 @@ export default function OrderDetailPage() {
     }
   }, [order]);
 
-  const { ToastContainer, warning } = useToast();
+  // Debug: Log payment data
+  useMemo(() => {
+    if (payment) {
+      console.log('💳 Payment Data:', payment);
+      console.log('💳 Payment Method:', payment.method);
+      console.log('💳 Payment Status:', payment.status);
+    }
+  }, [payment]);
+
+  const { ToastContainer, warning, success } = useToast();
 
   // Review states
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState<string>("");
-  const [reviewImage, setReviewImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [reviewImages, setReviewImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const orderItems: OrderItem[] = useMemo(() => order?.orderItems ?? [], [order?.orderItems]);
+
+  // Tạo map để check sản phẩm nào đã được comment
+  const commentedProductIds = useMemo(() => {
+    return new Set(comments.map((c: any) => c.productId));
+  }, [comments]);
+
+  // Check xem đơn hàng đã comment hết chưa (tất cả sản phẩm đều có comment)
+  const isOrderFullyCommented = useMemo(() => {
+    if (!orderItems || orderItems.length === 0) return false;
+    const allProductIds = new Set(orderItems.map(item => item.productId));
+    return allProductIds.size > 0 && Array.from(allProductIds).every(id => commentedProductIds.has(id));
+  }, [orderItems, commentedProductIds]);
 
   // Available products for review (show when payment is completed or order is confirmed/returned)
   const canReview = useMemo(() => {
     if (!order) return false;
-    // Kiểm tra payment status (backend có thể trả về "completed" hoặc "paid")
-    const paymentStatus = order.paymentStatus?.toLowerCase();
-    const paymentCompleted = paymentStatus === "completed" || paymentStatus === "paid";
+    
+    // Kiểm tra payment status từ payment hoặc order (backend có thể trả về "completed" hoặc "paid")
+    const currentPaymentStatus = (payment?.status || order.paymentStatus)?.toLowerCase();
+    const paymentCompleted = currentPaymentStatus === "completed" || currentPaymentStatus === "paid";
+    
     // Kiểm tra order status - cho phép review khi đơn hàng đã được xác nhận trở lên
+    // Với COD, đơn hàng có thể không có payment record hoặc payment status, nhưng khi order đã được xác nhận thì vẫn cho phép review
     const orderConfirmed = ["confirmed", "rented", "returned"].includes(order.status?.toLowerCase() || "");
-    // Cho phép review nếu thanh toán thành công HOẶC đơn hàng đã được xác nhận
+    
+    // Cho phép review nếu:
+    // 1. Thanh toán thành công (cho các phương thức online) HOẶC
+    // 2. Đơn hàng đã được xác nhận (bao gồm cả COD - không cần payment status)
     return paymentCompleted || orderConfirmed;
-  }, [order]);
+  }, [order, payment]);
 
   const availableProductsForReview = useMemo(() => {
     if (!canReview) return [];
@@ -152,35 +199,82 @@ export default function OrderDetailPage() {
     }));
   }, [canReview, orderItems]);
 
-  // Handle image selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        warning("Kích thước ảnh quá lớn", "Kích thước ảnh không được vượt quá 5MB");
+  // Handle multiple image selection
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate all files
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    files.forEach((file) => {
+      if (file.size > 10 * 1024 * 1024) {
+        invalidFiles.push(`${file.name}: Kích thước quá lớn (max 10MB)`);
         return;
       }
       if (!file.type.startsWith("image/")) {
-        warning("Định dạng không hợp lệ", "Vui lòng chọn file ảnh hợp lệ");
+        invalidFiles.push(`${file.name}: Định dạng không hợp lệ`);
         return;
       }
-      setReviewImage(file);
+      validFiles.push(file);
+    });
+
+    if (invalidFiles.length > 0) {
+      warning("Một số ảnh không hợp lệ", invalidFiles.join(", "));
+    }
+
+    if (validFiles.length === 0) return;
+
+    // Limit to 5 images max
+    const filesToAdd = validFiles.slice(0, 5 - reviewImages.length);
+    if (validFiles.length > filesToAdd.length) {
+      warning("Giới hạn số lượng", "Chỉ có thể upload tối đa 5 ảnh");
+    }
+
+    // Add to state
+    const newFiles = [...reviewImages, ...filesToAdd];
+    setReviewImages(newFiles);
+
+    // Create previews
+    const newPreviews: string[] = [];
+    filesToAdd.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === filesToAdd.length) {
+          setImagePreviews([...imagePreviews, ...newPreviews]);
+        }
       };
       reader.readAsDataURL(file);
+    });
+
+    // Upload to Cloudinary automatically
+    setIsUploading(true);
+    try {
+      const uploadPromises = filesToAdd.map((file) => uploadImage(file, 'reviews'));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map((r) => r.url);
+      setUploadedImageUrls([...uploadedImageUrls, ...newUrls]);
+    } catch (error: any) {
+      warning("Lỗi upload ảnh", error.message || "Không thể upload ảnh lên Cloudinary");
+      // Remove failed uploads from state
+      setReviewImages(reviewImages);
+      setImagePreviews(imagePreviews);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Handle remove image
-  const handleRemoveImage = () => {
-    setReviewImage(null);
-    setImagePreview(null);
+  // Remove image
+  const handleRemoveImage = (index: number) => {
+    setReviewImages(reviewImages.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+    setUploadedImageUrls(uploadedImageUrls.filter((_, i) => i !== index));
   };
 
-  // Handle submit review (placeholder - chưa có backend)
-  const handleSubmitReview = () => {
+  // Handle submit review
+  const handleSubmitReview = async () => {
     if (!selectedProductId) {
       warning("Thiếu thông tin", "Vui lòng chọn sản phẩm để đánh giá");
       return;
@@ -193,7 +287,55 @@ export default function OrderDetailPage() {
       warning("Nội dung không hợp lệ", "Nội dung đánh giá phải có ít nhất 10 ký tự");
       return;
     }
-    warning("Chức năng đang phát triển", "Tính năng đánh giá đang được phát triển, vui lòng thử lại sau!");
+    
+    // Nếu có ảnh chưa upload, upload trước
+    if (reviewImages.length > uploadedImageUrls.length) {
+      setIsUploading(true);
+      try {
+        const remainingFiles = reviewImages.slice(uploadedImageUrls.length);
+        const uploadPromises = remainingFiles.map((file) => uploadImage(file, 'reviews'));
+        const results = await Promise.all(uploadPromises);
+        const newUrls = results.map((r) => r.url);
+        setUploadedImageUrls([...uploadedImageUrls, ...newUrls]);
+      } catch (error: any) {
+        warning("Lỗi upload ảnh", error.message || "Không thể upload ảnh lên Cloudinary");
+        setIsUploading(false);
+        setIsSubmitting(false);
+        return;
+      } finally {
+        setIsUploading(false);
+      }
+    }
+    
+    setIsSubmitting(true);
+    try {
+      // Gọi API submit review với imageUrls
+      await apiClient.post('/comments', {
+        productId: selectedProductId,
+        orderId: orderId,
+        rating,
+        content: comment.trim(),
+        imageUrls: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
+      });
+      
+      success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
+      
+      // Reset form after success
+      setSelectedProductId("");
+      setRating(5);
+      setComment("");
+      setReviewImages([]);
+      setImagePreviews([]);
+      setUploadedImageUrls([]);
+      
+      // Refresh order data và comments để hiển thị review mới
+      mutate();
+      mutateComments();
+    } catch (error: any) {
+      warning("Lỗi", error.message || "Không thể gửi đánh giá");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const subtotal = useMemo(() => {
@@ -233,9 +375,21 @@ export default function OrderDetailPage() {
   }
 
   const shippingFee = order.shippingFee ?? 0;
-  const paymentMethodText = order.paymentMethod
-    ? paymentMethodLabel[order.paymentMethod] || "Chưa cập nhật"
+  
+  // Lấy paymentMethod từ payment nếu có, nếu không thì từ order
+  const paymentMethod = payment?.method || order.paymentMethod;
+  const paymentMethodText = paymentMethod
+    ? paymentMethodLabel[paymentMethod] || "Chưa cập nhật"
     : "Chưa cập nhật";
+  
+  // Lấy paymentStatus từ payment nếu có, nếu không thì từ order
+  const paymentStatus = payment?.status || order.paymentStatus;
+  const paymentStatusText = paymentStatus
+    ? paymentStatusLabel[paymentStatus] || paymentStatus
+    : "Chưa cập nhật";
+  
+  // Lấy transactionId từ payment nếu có, nếu không thì từ order
+  const transactionId = payment?.transactionId || order.transactionId;
 
   return (
     <div className="min-h-screen bg-white">
@@ -268,7 +422,7 @@ export default function OrderDetailPage() {
             </p>
           </div>
           <Badge
-            className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-4 py-2 text-sm font-semibold rounded-full`}
+            className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-4 py-2 text-sm font-semibold rounded-full ${order.status?.toLowerCase() === 'confirmed' ? 'hover:bg-green-100' : ''} cursor-default`}
           >
             {statusLabel[order.status?.toLowerCase()] || order.status}
           </Badge>
@@ -407,30 +561,19 @@ export default function OrderDetailPage() {
             <p className="text-sm text-slate-600">
               Trạng thái:{" "}
               <span className="font-semibold text-slate-900">
-                {paymentStatusLabel[order.paymentStatus] || order.paymentStatus}
+                {paymentStatusText}
               </span>
             </p>
-            {order.transactionId && (
+            {transactionId && (
               <p className="text-sm text-slate-600">
                 Mã giao dịch:{" "}
                 <span className="font-semibold text-slate-900">
-                  {order.transactionId}
+                  {transactionId}
                 </span>
               </p>
             )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-8">
-        <Button
-          variant="outline"
-          className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
-          onClick={() => router.push("/orders")}
-        >
-          Quay lại đơn hàng
-        </Button>
-      </div>
       </div>
 
       {/* Review Section - Hiển thị khi thanh toán thành công hoặc đơn hàng đã được xác nhận */}
@@ -441,6 +584,11 @@ export default function OrderDetailPage() {
             <h2 className="text-lg font-semibold text-slate-900">
               Đánh giá sản phẩm
             </h2>
+            {isOrderFullyCommented && (
+              <Badge className="bg-green-100 text-green-800 border-0 px-3 py-1 text-xs font-medium rounded-full">
+                Đã bình luận hết
+              </Badge>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -521,40 +669,73 @@ export default function OrderDetailPage() {
             {/* Upload ảnh */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
-                Ảnh đánh giá (tùy chọn)
+                Ảnh đánh giá (tùy chọn, tối đa 5 ảnh)
               </label>
-              {!imagePreview ? (
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50">
+              {reviewImages.length === 0 ? (
+                <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <Upload className="h-5 w-5" />
-                  <span>Chọn ảnh để đính kèm</span>
+                  <span>{isUploading ? 'Đang upload...' : 'Chọn ảnh để đính kèm'}</span>
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleImageChange}
+                    disabled={isUploading}
                     className="hidden"
                   />
                 </label>
               ) : (
-                <div className="relative inline-block">
-                  <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-slate-300">
-                    <Image
-                      src={imagePreview}
-                      alt="Preview"
-                      fill
-                      className="object-cover"
-                    />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-slate-300">
+                          <Image
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                          {index < uploadedImageUrls.length && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-green-500/80 text-white text-xs text-center py-1">
+                              Đã upload
+                            </div>
+                          )}
+                          {isUploading && index >= uploadedImageUrls.length && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 transition-colors"
+                          disabled={isUploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
+                  {reviewImages.length < 5 && (
+                    <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <Upload className="h-4 w-4" />
+                      <span>Thêm ảnh ({reviewImages.length}/5)</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageChange}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
               )}
               <p className="mt-1 text-xs text-slate-500">
-                Kích thước tối đa 5MB
+                Kích thước tối đa 10MB mỗi ảnh. Ảnh sẽ được upload tự động khi chọn.
               </p>
             </div>
 
@@ -576,15 +757,26 @@ export default function OrderDetailPage() {
               </Button>
               <Button
                 onClick={handleSubmitReview}
-                disabled={isSubmitting || !selectedProductId || !comment.trim()}
+                disabled={isSubmitting || isUploading || !selectedProductId || !comment.trim()}
                 className="rounded-full bg-green-600 px-8 text-white hover:bg-green-700 disabled:opacity-50"
               >
-                {isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
+                {isSubmitting ? "Đang gửi..." : isUploading ? "Đang upload ảnh..." : "Gửi đánh giá"}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      <div className="mt-8">
+        <Button
+          variant="outline"
+          className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
+          onClick={() => router.push("/orders")}
+        >
+          Quay lại đơn hàng
+        </Button>
+      </div>
+      </div>
 
       {/* Toast Container */}
       <ToastContainer />
