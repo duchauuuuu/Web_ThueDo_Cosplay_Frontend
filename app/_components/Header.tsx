@@ -329,13 +329,16 @@ const Header = () => {
                     </div>
                     
                     {/* Menu items */}
-                    <DropdownMenuItem className={`transition-colors duration-200 ${
-                      theme === 'dark' 
-                        ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
-                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-                    }`}>
+                    <DropdownMenuItem 
+                      className={`transition-colors duration-200 ${
+                        theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-green-800 hover:text-green-300' 
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
+                      }`}
+                      onClick={() => router.push('/profile')}
+                    >
                       <User className="mr-2 h-4 w-4" />
-                      <span>Hồ sơ của tôi</span>
+                      <span>Hồ sơ</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       className={`transition-colors duration-200 ${

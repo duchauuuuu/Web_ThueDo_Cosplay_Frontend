@@ -134,11 +134,11 @@ export default function WishlistPage() {
   // Fetch categories from API
   const { data: categoriesData, error: categoriesError, isLoading: categoriesLoading } = useSWRFetch<Category[]>(`${API_URL}/categories`);
 
-  // Transform backend favorites to local format and sync with store
+  // Transform backend favorites to local format
   const favorites = useMemo(() => {
     if (!favoritesData) return [];
     
-    const transformed = favoritesData.map((fav: any) => {
+    return favoritesData.map((fav: any) => {
       const sortedImages = fav.product?.productImages
         ?.filter((img: any) => img.isActive)
         .sort((a: any, b: any) => a.order - b.order) || [];
@@ -161,47 +161,29 @@ export default function WishlistPage() {
         discountPrice: fav.product?.discountPrice ? Number(fav.product.discountPrice) : undefined,
       };
     });
+  }, [favoritesData]);
 
-    // Sync with local store
-    setFavorites(transformed);
-    
-    return transformed;
-  }, [favoritesData, setFavorites]);
+  // Sync with local store - phải dùng useEffect, không được gọi trong useMemo
+  useEffect(() => {
+    if (favorites.length > 0 || favoritesData) {
+      setFavorites(favorites);
+    }
+  }, [favorites, favoritesData, setFavorites]);
 
   const totalFavorites = favorites.length;
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      showError("Chưa đăng nhập", "Vui lòng đăng nhập để xem danh sách yêu thích");
-      setTimeout(() => {
-        router.push('/login');
-      }, 1500);
-    }
-  }, [isAuthenticated, router, showError]);
-
-  // Loading state - hiển thị loading khi đang fetch data
-  if (favoritesLoading || categoriesLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <Loading variant="fullpage" text="Đang tải danh sách yêu thích..." />
-        </div>
-      </div>
-    );
-  }
-
-  // Tính max price từ favorites
+  // Tính max price từ favorites - phải đặt trước early returns
   const maxPrice = useMemo(() => {
     if (favorites.length === 0) return 10000000;
     return Math.max(...favorites.map(p => p.price));
   }, [favorites]);
 
-  // Update price range when maxPrice changes
+  // Update price range when maxPrice changes - phải đặt trước early returns
   useEffect(() => {
     setPriceRange([0, maxPrice]);
   }, [maxPrice]);
 
-  // Apply filters and sorting
+  // Apply filters and sorting - phải đặt trước early returns
   const filteredProducts = useMemo(() => {
     let filtered = [...favorites];
 
@@ -245,19 +227,19 @@ export default function WishlistPage() {
     return filtered;
   }, [favorites, sortBy, priceRange, selectedCategory]);
 
-  // Pagination
+  // Pagination - phải đặt trước early returns
   const totalPages = Math.ceil(filteredProducts.length / pageSize);
   const pagedProducts = useMemo(() => {
     const startIndex = (page - 1) * pageSize;
     return filteredProducts.slice(startIndex, startIndex + pageSize);
   }, [filteredProducts, page, pageSize]);
 
-  // Reset page when filters change
+  // Reset page when filters change - phải đặt trước early returns
   useEffect(() => {
     setPage(1);
   }, [sortBy, priceRange, selectedCategory]);
 
-  // Transform categories data with product count
+  // Transform categories data with product count - phải đặt trước early returns
   const categories = useMemo(() => {
     if (!categoriesData || categoriesData.length === 0) return [];
     
@@ -270,6 +252,26 @@ export default function WishlistPage() {
       }))
       .filter(category => category.count > 0); // Ẩn categories không có sản phẩm
   }, [categoriesData]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      showError("Chưa đăng nhập", "Vui lòng đăng nhập để xem danh sách yêu thích");
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+    }
+  }, [isAuthenticated, router, showError]);
+
+  // Loading state - hiển thị loading khi đang fetch data
+  if (favoritesLoading || categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <Loading variant="fullpage" text="Đang tải danh sách yêu thích..." />
+        </div>
+      </div>
+    );
+  }
 
   const handleClearFilters = () => {
     setSortBy("newest");

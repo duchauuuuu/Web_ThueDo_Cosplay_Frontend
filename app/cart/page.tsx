@@ -97,22 +97,111 @@ const CartPage = () => {
     isAuthenticated ? `${API_URL}/addresses` : null
   )
 
-  // Auto-fill thông tin khách hàng khi có data từ API (chỉ điền khi trường còn trống)
+  // Track giá trị userProfile cũ để phát hiện khi user đã chỉnh sửa thủ công
+  const previousUserProfileRef = React.useRef<User | null>(null)
+
+  // Auto-fill thông tin khách hàng khi có data từ API
+  // Cập nhật động khi userProfile thay đổi (ví dụ: cập nhật ở trang profile)
   useEffect(() => {
     if (userProfile && isAuthenticated) {
-      setCustomerInfo(prev => ({
-        ...prev,
-        // Chỉ điền nếu trường còn trống để không ghi đè dữ liệu user đã nhập
-        fullName: prev.fullName || userProfile.fullName || '',
-        phone: prev.phone || userProfile.phone || '',
-        email: prev.email || userProfile.email || ''
-      }))
+      setCustomerInfo(prev => {
+        const previousProfile = previousUserProfileRef.current
+        
+        // Nếu userProfile thay đổi, sync các trường mà user chưa chỉnh sửa thủ công
+        // Kiểm tra xem giá trị hiện tại có khác với giá trị cũ của userProfile không
+        const wasManuallyEdited = previousProfile && (
+          (prev.fullName && prev.fullName !== previousProfile.fullName) ||
+          (prev.phone && prev.phone !== previousProfile.phone) ||
+          (prev.email && prev.email !== previousProfile.email)
+        )
+
+        return {
+          ...prev,
+          // Nếu user chưa chỉnh sửa thủ công, luôn sync với userProfile mới
+          // Nếu đã chỉnh sửa, chỉ sync khi trường còn trống
+          fullName: wasManuallyEdited && prev.fullName ? prev.fullName : (userProfile.fullName || prev.fullName || ''),
+          phone: wasManuallyEdited && prev.phone ? prev.phone : (userProfile.phone || prev.phone || ''),
+          email: wasManuallyEdited && prev.email ? prev.email : (userProfile.email || prev.email || '')
+        }
+      })
+      
+      // Lưu userProfile hiện tại để so sánh lần sau
+      previousUserProfileRef.current = userProfile
     }
   }, [userProfile, isAuthenticated])
 
-  // Auto-fill địa chỉ mặc định khi có data từ API (chỉ điền khi trường còn trống)
+  // Parse địa chỉ từ string thành province, district, address
+  const parseAddress = (addressString: string | undefined): { province: string; district: string; address: string } => {
+    if (!addressString) {
+      return { province: '', district: '', address: '' }
+    }
+
+    // Format: "Tên đường, Phường/Xã, Tỉnh thành"
+    const parts = addressString.split(',').map(p => p.trim())
+    
+    if (parts.length >= 3) {
+      const address = parts[0]
+      const district = parts[1]
+      const province = parts[2]
+      
+      // Map province name to value
+      const provinceValue = mapProvinceToValue(province)
+      
+      // Tìm district match (case-insensitive) trong danh sách
+      const availableDistricts = districtsByProvince[provinceValue] || []
+      const matchedDistrict = availableDistricts.find(d => 
+        d.toLowerCase() === district.toLowerCase()
+      ) || district
+      
+      return {
+        province: provinceValue,
+        district: matchedDistrict,
+        address: address
+      }
+    }
+    
+    return { province: '', district: '', address: addressString }
+  }
+
+  // Track giá trị userProfile.address cũ để phát hiện khi user đã chỉnh sửa thủ công
+  const previousAddressRef = React.useRef<string | undefined>(undefined)
+
+  // Auto-fill địa chỉ từ userProfile.address khi có data từ API
+  // Cập nhật động khi userProfile.address thay đổi (ví dụ: cập nhật ở trang profile)
   useEffect(() => {
-    if (userAddresses && userAddresses.length > 0 && isAuthenticated) {
+    if (userProfile?.address && isAuthenticated) {
+      const parsedAddress = parseAddress(userProfile.address)
+      const previousAddress = previousAddressRef.current
+      
+      setCustomerInfo(prev => {
+        // Kiểm tra xem user đã chỉnh sửa địa chỉ thủ công chưa
+        const wasManuallyEdited = previousAddress && (
+          (prev.province && prev.province !== parseAddress(previousAddress).province) ||
+          (prev.district && prev.district !== parseAddress(previousAddress).district) ||
+          (prev.address && prev.address !== parseAddress(previousAddress).address)
+        )
+
+        // Nếu user chưa chỉnh sửa thủ công, luôn sync với userProfile.address mới
+        // Nếu đã chỉnh sửa, chỉ sync khi trường còn trống
+        return {
+          ...prev,
+          province: wasManuallyEdited && prev.province ? prev.province : (parsedAddress.province || prev.province || ''),
+          district: wasManuallyEdited && prev.district ? prev.district : (parsedAddress.district || prev.district || ''),
+          address: wasManuallyEdited && prev.address ? prev.address : (parsedAddress.address || prev.address || ''),
+          // Reset selectedAddressId khi sync từ profile
+          selectedAddressId: wasManuallyEdited ? prev.selectedAddressId : ''
+        }
+      })
+      
+      // Lưu address hiện tại để so sánh lần sau
+      previousAddressRef.current = userProfile.address
+    }
+  }, [userProfile?.address, isAuthenticated])
+
+  // Auto-fill địa chỉ mặc định khi có data từ API (chỉ điền khi trường còn trống)
+  // Chỉ dùng khi không có địa chỉ từ userProfile.address
+  useEffect(() => {
+    if (userAddresses && userAddresses.length > 0 && isAuthenticated && !userProfile?.address) {
       // Tìm địa chỉ mặc định hoặc lấy địa chỉ đầu tiên
       const defaultAddress = userAddresses.find(addr => addr.isDefault) || userAddresses[0]
       
@@ -135,7 +224,7 @@ const CartPage = () => {
         }))
       }
     }
-  }, [userAddresses, isAuthenticated])
+  }, [userAddresses, isAuthenticated, userProfile?.address])
 
   // Helper function để map tên tỉnh thành value
   const mapProvinceToValue = (provinceName: string): string => {
