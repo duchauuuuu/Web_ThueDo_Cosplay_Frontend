@@ -23,47 +23,47 @@ const persons: Person[] = [
   {
     name: "Mia Chen",
     title: "Senior Developer",
-    img: "/img_clothes/anime/d51bac4a76e4dca3d574fe6e2cee0ebd.jpg",
+    img: "/img_clothes/anime/37854368327e17567928ca168adb7f11.jpg",
   },
   {
     name: "Kai Tanaka",
     title: "UX/UI Designer",
-    img: "/img_clothes/anime/d59da6d45449ae2a0e945c1b99bf7c01.jpg",
+    img: "/img_clothes/anime/8178677ac6e0e8a063e8a0468af6636d.jpg",
   },
   {
     name: "Zoe Williams",
     title: "Project Manager",
-    img: "/img_clothes/anime/3fc96e001a5e776f9df3e9162ae8ca3b.jpg",
+    img: "/img_clothes/anime/Shenhe-Cosplay-1.jpg",
   },
   {
     name: "Ethan Hunt",
     title: "Marketing Head",
-    img: "/img_clothes/anime/c8cb4c6f9e4d3a76a2e1e24e951b5a00.jpg",
+    img: "/img_clothes/anime/Shenhe-Cosplay-5.jpg",
   },
   {
     name: "Chloe Garcia",
     title: "Data Scientist",
-    img: "/img_clothes/anime/a0cc60d81f0faa0e99f83f7c23c3b7ee.jpg",
+    img: "/img_clothes/anime/Shenhe-Cosplay-7.jpg",
   },
   {
     name: "Noah King",
     title: "Brand Strategist",
-    img: "/img_clothes/anime/d8be3f4c1e2a9a5b6c7d8e9f0a1b2c3d.jpg",
+    img: "/img_clothes/anime/Shenhe-Cosplay-9.jpg",
   },
   {
     name: "Ava Martinez",
     title: "Content Creator",
-    img: "/img_clothes/anime/92fa1e42ab2f5a3eefc092f60d1a1da4.jpg",
+    img: "/img_clothes/anime/songoku-min.jpg",
   },
   {
     name: "New Person 1",
     title: "Designer",
-    img: "/img_clothes/anime/b9c88d0e72a5363e2e0af50af48baed.jpg",
+    img: "/img_clothes/anime/-158012232494169592560.webp",
   },
   {
     name: "New Person 2",
     title: "Developer",
-    img: "/img_clothes/anime/e3c77d5e2a3f4b8c9d0e1f2a3b4c5d6e.jpg",
+    img: "/img_clothes/anime/loat-hinh-anh-cosplay-anime-sieu-dinh-cua-coser-xinh-dep-senyamiku3.jpg",
   },
 ];
 
