@@ -42,7 +42,7 @@ export function Loading({
   // Full page loading
   if (variant === 'fullpage') {
     return (
-      <div className={`fixed inset-0 w-screen h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center z-50 ${className}`}>
+      <div className={`min-h-screen w-full bg-gradient-to-b from-green-50 to-white flex items-center justify-center ${className}`}>
         <Spinner />
       </div>
     );
