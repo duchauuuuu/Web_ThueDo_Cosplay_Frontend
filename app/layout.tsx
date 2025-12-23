@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   title: "HAUCOSPLAY - Thế giới cosplay cho bạn",
   description: "Cho thuê trang phục cosplay chất lượng cao",
   icons: {
-    icon: "/icon/icons8-kuromi-96%20(2).png",
-    shortcut: "/icon/icons8-kuromi-96%20(2).png",
-    apple: "/icon/icons8-kuromi-96%20(2).png",
+    icon: "/icon/icons8kuromi96.png",
+    shortcut: "/icon/icons8kuromi96.png",
+    apple: "/icon/icons8kuromi96.png",
   },
 };
 

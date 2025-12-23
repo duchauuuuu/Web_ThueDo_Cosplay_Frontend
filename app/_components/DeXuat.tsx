@@ -44,7 +44,7 @@ const DeXuat = () => {
     },
     {
       id: 3,
-      productImage: '/img_clothes/dongPhucHocSinh/đồng phục nữ sinh hàn quốc (1)-min.jpg',
+      productImage: '/img_clothes/dongPhucHocSinh/0430f42f54c83df341e3bc667e210891.jpg',
       backgroundImage: '/imgDeXuat/3.jpg',
       category: 'Đồng Phục Học Sinh',
       title: 'Bộ sưu tập học sinh',
