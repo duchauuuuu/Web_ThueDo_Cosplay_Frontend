@@ -1,5 +1,5 @@
 // Product types
-import { ProductCategory } from './category';
+import { Category } from './category';
 import { ProductImage } from './product-image';
 
 // Frontend UI types
@@ -47,7 +47,7 @@ export interface Product {
   isAvailable: boolean;
   isActive: boolean;
   categoryId: string;
-  category?: ProductCategory;
+  category?: Category;
   productImages?: ProductImage[];
   averageRating?: number; // Added: Dynamic rating from comments
   reviewCount?: number; // Added: Count of reviews
