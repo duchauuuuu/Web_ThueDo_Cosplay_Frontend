@@ -16,13 +16,13 @@ export default function AboutPage() {
   // Danh sách ảnh từ thư mục img_clothes
   const galleryImages = [
     { src: "/img_clothes/coTich/c46d5df0999df54df2c6a65223c6eaa5.jpg", alt: "Trang phục cosplay 1" },
-    { src: "/img_clothes/anime/3fc96e001a5e776f9df3e9162ae8ca3b.jpg", alt: "Trang phục cosplay 2" },
-    { src: "/img_clothes/anime/a0cc60d81f0faa0e99f83f7c23c3b7ee.jpg", alt: "Trang phục cosplay 3" },
-    { src: "/img_clothes/anime/d9cd99d0e72a5363e2e0af50af48baed.jpg", alt: "Trang phục cosplay 4" },
+    { src: "/img_clothes/anime/37854368327e17567928ca168adb7f11.jpg", alt: "Trang phục cosplay 2" },
+    { src: "/img_clothes/anime/8178677ac6e0e8a063e8a0468af6636d.jpg", alt: "Trang phục cosplay 3" },
+    { src: "/img_clothes/anime/Shenhe-Cosplay-1.jpg", alt: "Trang phục cosplay 4" },
     { src: "/img_clothes/coTich/000aa6833cdc1c0415c4b11a8495510d.jpg", alt: "Trang phục cosplay 5" },
     { src: "/img_clothes/coTrang/2f15ae551b1a2273725028f64955a607.jpg", alt: "Trang phục cosplay 6" },
     { src: "/img_clothes/dongPhucHocSinh/0430f42f54c83df341e3bc667e210891.jpg", alt: "Trang phục cosplay 7" },
-    { src: "/img_clothes/anime/92fa1e42ab2f5a3eefc092f60d1a1da4.jpg", alt: "Trang phục cosplay 8" },
+    { src: "/img_clothes/anime/songoku-min.jpg", alt: "Trang phục cosplay 8" },
   ];
   
   // Tạo vòng lặp vô tận bằng cách nhân đôi mảng
@@ -255,7 +255,7 @@ export default function AboutPage() {
                     {/* Vòng tròn xoay */}
                     <div className="absolute inset-0 pointer-events-none">
                       <Image
-                        src="/imgSection/5524326.png"
+                        src="/imgSection/123456.png"
                         alt="Vòng tròn xoay"
                         fill
                         sizes="96px"
