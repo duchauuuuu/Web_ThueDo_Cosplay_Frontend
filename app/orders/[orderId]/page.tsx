@@ -744,8 +744,9 @@ export default function OrderDetailPage() {
                   setSelectedProductId("");
                   setRating(5);
                   setComment("");
-                  setReviewImage(null);
-                  setImagePreview(null);
+                  setReviewImages([]);
+                  setImagePreviews([]);
+                  setUploadedImageUrls([]);
                 }}
                 disabled={isSubmitting}
                 className="rounded-full"
