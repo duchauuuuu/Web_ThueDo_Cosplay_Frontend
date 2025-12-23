@@ -128,9 +128,7 @@ export default function ProductDetailPage() {
     isAuthenticated && token && productId 
       ? `${API_URL}/favorites/check/${productId}` 
       : null,
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }
+    token ? { Authorization: `Bearer ${token}` } : undefined
   )
 
   // Update isWishlisted khi favoriteStatus thay đổi
