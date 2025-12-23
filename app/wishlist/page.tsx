@@ -126,9 +126,7 @@ export default function WishlistPage() {
   const shouldFetch = isAuthenticated && token;
   const { data: favoritesData, error: favoritesError, isLoading: favoritesLoading, mutate } = useSWRFetch<any[]>(
     shouldFetch ? `${API_URL}/favorites` : null,
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }
+    token ? { Authorization: `Bearer ${token}` } : undefined
   );
 
   // Fetch categories from API
