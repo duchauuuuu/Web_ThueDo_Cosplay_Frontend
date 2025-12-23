@@ -82,19 +82,19 @@ const formatDateTime = (value?: string) => {
   }).format(new Date(value));
 };
 
-// Lấy thumbnail ảnh sản phẩm
-const getItemImage = (productImage?: string | null, product?: any) => {
-  if (productImage) {
-    if (productImage.startsWith("http://") || productImage.startsWith("https://")) {
-      return productImage;
-    }
-    if (productImage.startsWith("/")) {
-      return productImage;
-    }
+// Lấy thumbnail ảnh sản phẩm - giống logic trang cart
+const getItemImage = (product?: any) => {
+  // Ưu tiên lấy từ product.images (array string)
+  if (product?.images && Array.isArray(product.images) && product.images.length > 0) {
+    return product.images[0];
   }
-  // Try to get from product.images or product.productImages
-  if (product?.images?.[0]) return product.images[0];
-  if (product?.productImages?.[0]?.url) return product.productImages[0].url;
+  // Nếu không có, lấy từ product.productImages (relation với ProductImage entity)
+  if (product?.productImages && Array.isArray(product.productImages) && product.productImages.length > 0) {
+    // Sắp xếp theo trường order (tăng dần) để lấy ảnh đầu tiên
+    const sortedImages = [...product.productImages].sort((a, b) => (a.order || 0) - (b.order || 0));
+    return sortedImages[0]?.url;
+  }
+  // Fallback image
   return "/assets/imgs/imgPet/cat-6593947_1280.jpg";
 };
 
@@ -450,10 +450,7 @@ export default function OrderDetailPage() {
           ) : (
             orderItems.map((item) => {
               const product = item.product;
-              const imgSrc = getItemImage(
-                product?.images?.[0] || product?.productImages?.[0]?.url,
-                product
-              );
+              const imgSrc = getItemImage(product);
               const productName = product?.name || `Sản phẩm ${item.productId}`;
               return (
                 <div

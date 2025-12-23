@@ -587,13 +587,7 @@ const CartPage = () => {
   // Loading state - hiển thị loading khi đang fetch user data (chỉ khi đã đăng nhập)
   // Phải đặt sau tất cả hooks để tuân thủ Rules of Hooks
   if (isAuthenticated && (profileLoading || addressesLoading)) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <Loading variant="fullpage" />
-        </div>
-      </div>
-    );
+    return <Loading variant="fullpage" />;
   }
 
   const getDistricts = () => {
