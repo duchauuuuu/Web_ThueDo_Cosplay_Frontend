@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/store/useCartStore";
@@ -16,7 +16,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
 const DEFAULT_IMAGE = '/img_clothes/anime/Akatsuki truyện naruto (4).jpg';
 
-export default function ProductPage() {
+function ProductPageContent() {
   const pageSize = 9;
   const [page, setPage] = React.useState(1);
   const router = useRouter();
@@ -543,5 +543,19 @@ export default function ProductPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <Loading variant="skeleton" skeletonCount={9} />
+        </div>
+      </div>
+    }>
+      <ProductPageContent />
+    </Suspense>
   );
 }
