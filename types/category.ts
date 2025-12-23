@@ -15,3 +15,13 @@ export interface Category {
 export interface CategoryWithCount extends Category {
   productCount?: number;
 }
+
+// Category filter component props
+export interface CategoryFilterProps {
+  categories: Array<{
+    name: string;
+    count: number;
+  }>;
+  selectedCategory: string | null;
+  onSelectCategory: (category: string | null) => void;
+}
