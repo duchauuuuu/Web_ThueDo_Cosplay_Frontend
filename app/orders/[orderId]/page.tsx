@@ -602,7 +602,7 @@ export default function OrderDetailPage() {
                 <select
                   value={selectedProductId}
                   onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 sm:px-4 py-2 text-xs sm:text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                  className="w-full rounded-lg border border-slate-300 px-3 sm:px-4 py-2 text-xs sm:text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
                 >
                   <option value="">-- Chọn sản phẩm --</option>
                   {availableProductsForReview.map((product) => (
