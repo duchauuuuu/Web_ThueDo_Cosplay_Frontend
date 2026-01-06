@@ -57,16 +57,16 @@ const CateGories = () => {
   }
 
   return (
-    <div className="py-16 px-[30px]" style={{backgroundColor: '#f9f5f0'}}>
-        <div className='flex justify-between items-center mb-12'>
-            <h1 className="text-4xl font-bold text-gray-900">Danh mục hàng đầu</h1>
+    <div className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-[30px]" style={{backgroundColor: '#f9f5f0'}}>
+        <div className='flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-10 lg:mb-12 gap-4 sm:gap-0'>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center sm:text-left">Danh mục hàng đầu</h1>
             <button 
               onClick={handleViewAll}
-              className="flex items-center gap-2 px-6 py-3 text-black bg-[#f9f5f0] hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-black bg-[#f9f5f0] hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer text-sm sm:text-base"
             >
-              <span className="text-lg font-medium">Xem tất cả</span>
+              <span className="font-medium lg:text-lg">Xem tất cả</span>
               <svg
-                className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
+                className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -75,28 +75,28 @@ const CateGories = () => {
               </svg>
             </button>
         </div>
-        <div className='flex flex-wrap gap-6 justify-center lg:justify-between'>
+        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4 lg:gap-6'>
           {categories.map((category) => (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category.id)}
-              className="flex flex-col items-center p-8 bg-transparent hover:bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group min-w-[160px] flex-1 max-w-[180px]"
+              className="flex flex-col items-center p-4 sm:p-6 lg:p-8 bg-transparent hover:bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
             >
               {/* Icon */}
-              <div className="mb-6  transition-transform duration-300">
-                <div className="relative w-20 h-20 flex items-center justify-center">
+              <div className="mb-3 sm:mb-4 lg:mb-6 transition-transform duration-300">
+                <div className="relative w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 flex items-center justify-center">
                   <Image 
                     src={category.svg} 
                     alt={category.name} 
                     width={64} 
                     height={64} 
-                    className="w-16 h-16  transition-all duration-300" 
+                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 transition-all duration-300" 
                   />
                 </div>
               </div>
               
               {/* Category Name */}
-              <h3 className="text-gray-700 font-medium text-center transition-colors duration-300">
+              <h3 className="text-gray-700 font-medium text-center transition-colors duration-300 text-xs sm:text-sm lg:text-base">
                 {category.name}
               </h3>
             </div>

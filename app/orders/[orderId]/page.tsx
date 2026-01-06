@@ -394,9 +394,9 @@ export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="relative py-24">
+      <div className="relative py-16 sm:py-20 md:py-24">
         <div className="absolute inset-0">
-          <img 
+          <img
             src="/ImgPoster/h1-banner01-1.jpg"
             alt="Order Detail Background"
             className="w-full h-full object-cover object-center"
@@ -404,31 +404,31 @@ export default function OrderDetailPage() {
           <div className="absolute inset-0 bg-black/20"></div>
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-center font-bold text-6xl text-white drop-shadow-lg">
+          <h1 className="text-center font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg">
             Chi tiết đơn hàng
           </h1>
         </div>
       </div>
 
-      <div className="mx-auto max-w-4xl px-4 py-10 text-gray-800">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8 md:py-10 text-gray-800">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
-            <p className="text-sm text-gray-500">Đơn hàng</p>
-            <h2 className="text-2xl font-semibold text-gray-900">
+            <p className="text-xs sm:text-sm text-gray-500">Đơn hàng</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
               #{order.orderNumber || order.id}
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Tạo lúc {formatDateTime(order.createdAt)}
             </p>
           </div>
           <Badge
-            className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-4 py-2 text-sm font-semibold rounded-full ${order.status?.toLowerCase() === 'confirmed' ? 'hover:bg-green-100' : ''} cursor-default`}
+            className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full ${order.status?.toLowerCase() === 'confirmed' ? 'hover:bg-green-100' : ''} cursor-default`}
           >
             {statusLabel[order.status?.toLowerCase()] || order.status}
           </Badge>
         </div>
 
-        <p className="mb-6 text-sm text-gray-600">
+        <p className="mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600">
           Đơn hàng đang ở trạng thái{" "}
           <span className="font-semibold text-gray-900">
             {statusLabel[order.status?.toLowerCase()] || order.status}
@@ -436,15 +436,15 @@ export default function OrderDetailPage() {
           .
         </p>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-          <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4 text-sm font-semibold uppercase text-slate-500">
+      <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 lg:grid-cols-3">
+        <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm lg:col-span-2">
+          <div className="mb-4 sm:mb-6 flex items-center justify-between border-b border-slate-200 pb-3 sm:pb-4 text-xs sm:text-sm font-semibold uppercase text-slate-500">
             <span>Sản phẩm</span>
             <span>Tổng</span>
           </div>
 
           {orderItems.length === 0 ? (
-            <p className="py-6 text-sm text-gray-500">
+            <p className="py-4 sm:py-6 text-xs sm:text-sm text-gray-500">
               Đơn hàng chưa có sản phẩm.
             </p>
           ) : (
@@ -455,26 +455,26 @@ export default function OrderDetailPage() {
               return (
                 <div
                   key={`${item.productId}-${item.id}`}
-                  className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm text-gray-700"
+                  className="flex items-center justify-between gap-2 sm:gap-4 border-b border-gray-100 py-3 sm:py-4 text-xs sm:text-sm text-gray-700"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-14 w-14 overflow-hidden rounded-xl bg-gray-100">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                    <div className="relative h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                       <Image
                         src={imgSrc}
                         alt={productName}
                         fill
-                        sizes="56px"
+                        sizes="(max-width: 640px) 48px, 56px"
                         className="object-cover"
                       />
                     </div>
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-gray-900 truncate">
                       {productName}{" "}
                       <span className="text-gray-500">
                         × {item.quantity}
                       </span>
                     </span>
                   </div>
-                  <span className="text-right font-semibold text-gray-900">
+                  <span className="text-right font-semibold text-gray-900 flex-shrink-0">
                     {(() => {
                       const itemPrice = typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0);
                       return formatCurrency(itemPrice * (item.quantity || 1));
@@ -485,7 +485,7 @@ export default function OrderDetailPage() {
             })
           )}
 
-          <div className="mt-4 space-y-3 text-sm text-slate-600">
+          <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3 text-xs sm:text-sm text-slate-600">
             <div className="flex items-center justify-between">
               <span className="font-semibold">Tạm tính:</span>
               <span className="text-right font-semibold text-slate-900">
@@ -498,19 +498,19 @@ export default function OrderDetailPage() {
                 {formatCurrency(shippingFee)}
               </span>
             </div>
-            <div className="flex items-center justify-between border-t border-gray-200 pt-4 text-base font-semibold text-gray-900">
+            <div className="flex items-center justify-between border-t border-gray-200 pt-3 sm:pt-4 text-sm sm:text-base font-semibold text-gray-900">
               <span>Tổng cộng:</span>
               <span>{formatCurrency(order.totalPrice || order.totalAmount)}</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-3 text-lg font-semibold text-slate-900">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-slate-900">
               Thông tin giao hàng
             </h2>
-            <div className="space-y-1 text-sm text-slate-600">
+            <div className="space-y-1 text-xs sm:text-sm text-slate-600">
               <p>
                 {order.user?.fullName || "Chưa cập nhật"}
                 <br />
@@ -545,24 +545,24 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-3 text-lg font-semibold text-slate-900">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+            <h2 className="mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-slate-900">
               Thanh toán
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-600">
               Phương thức:{" "}
               <span className="font-semibold text-slate-900">
                 {paymentMethodText}
               </span>
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-600">
               Trạng thái:{" "}
               <span className="font-semibold text-slate-900">
                 {paymentStatusText}
               </span>
             </p>
             {transactionId && (
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 Mã giao dịch:{" "}
                 <span className="font-semibold text-slate-900">
                   {transactionId}
@@ -575,10 +575,10 @@ export default function OrderDetailPage() {
 
       {/* Review Section - Hiển thị khi thanh toán thành công hoặc đơn hàng đã được xác nhận */}
       {canReview && (
-        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-slate-900">
+        <div className="mt-6 sm:mt-8 rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+          <div className="mb-4 sm:mb-6 flex flex-wrap items-center gap-2">
+            <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900">
               Đánh giá sản phẩm
             </h2>
             {isOrderFullyCommented && (
@@ -588,21 +588,21 @@ export default function OrderDetailPage() {
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Chọn sản phẩm */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-xs sm:text-sm font-medium text-slate-700">
                 Chọn sản phẩm để đánh giá <span className="text-red-500">*</span>
               </label>
               {availableProductsForReview.length === 0 ? (
-                <div className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-600">
                   Không có sản phẩm để đánh giá.
                 </div>
               ) : (
                 <select
                   value={selectedProductId}
                   onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  className="w-full rounded-lg border border-slate-300 px-3 sm:px-4 py-2 text-xs sm:text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
                 >
                   <option value="">-- Chọn sản phẩm --</option>
                   {availableProductsForReview.map((product) => (
@@ -616,10 +616,10 @@ export default function OrderDetailPage() {
 
             {/* Đánh giá sao */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-xs sm:text-sm font-medium text-slate-700">
                 Đánh giá <span className="text-red-500">*</span>
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -628,11 +628,10 @@ export default function OrderDetailPage() {
                     className="focus:outline-none transition-transform hover:scale-110"
                   >
                     <Star
-                      size={32}
                       className={
                         star <= rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-slate-300"
+                          ? "fill-yellow-400 text-yellow-400 w-7 h-7 sm:w-8 sm:h-8"
+                          : "text-slate-300 w-7 h-7 sm:w-8 sm:h-8"
                       }
                     />
                   </button>
@@ -649,14 +648,14 @@ export default function OrderDetailPage() {
 
             {/* Nội dung đánh giá */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-xs sm:text-sm font-medium text-slate-700">
                 Nội dung đánh giá <span className="text-red-500">*</span>
               </label>
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                className="min-h-[120px] resize-none border-slate-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                className="min-h-[100px] sm:min-h-[120px] text-xs sm:text-sm resize-none border-slate-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
               />
               <p className="mt-1 text-xs text-slate-500">
                 Tối thiểu 10 ký tự
@@ -665,12 +664,12 @@ export default function OrderDetailPage() {
 
             {/* Upload ảnh */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-xs sm:text-sm font-medium text-slate-700">
                 Ảnh đánh giá (tùy chọn, tối đa 5 ảnh)
               </label>
               {reviewImages.length === 0 ? (
-                <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  <Upload className="h-5 w-5" />
+                <label className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-3 sm:p-4 text-xs sm:text-sm text-slate-600 transition-colors hover:border-green-300 hover:bg-green-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{isUploading ? 'Đang upload...' : 'Chọn ảnh để đính kèm'}</span>
                   <input
                     type="file"
@@ -683,10 +682,10 @@ export default function OrderDetailPage() {
                 </label>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
-                        <div className="relative h-32 w-32 overflow-hidden rounded-lg border border-slate-300">
+                        <div className="relative h-24 w-24 sm:h-32 sm:w-32 overflow-hidden rounded-lg border border-slate-300">
                           <Image
                             src={preview}
                             alt={`Preview ${index + 1}`}
@@ -737,7 +736,7 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Nút submit */}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -749,14 +748,14 @@ export default function OrderDetailPage() {
                   setUploadedImageUrls([]);
                 }}
                 disabled={isSubmitting}
-                className="rounded-full"
+                className="rounded-full w-full sm:w-auto text-xs sm:text-sm"
               >
                 Hủy
               </Button>
               <Button
                 onClick={handleSubmitReview}
                 disabled={isSubmitting || isUploading || !selectedProductId || !comment.trim()}
-                className="rounded-full bg-green-600 px-8 text-white hover:bg-green-700 disabled:opacity-50"
+                className="rounded-full bg-green-600 px-6 sm:px-8 text-white hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto text-xs sm:text-sm"
               >
                 {isSubmitting ? "Đang gửi..." : isUploading ? "Đang upload ảnh..." : "Gửi đánh giá"}
               </Button>
@@ -765,10 +764,10 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <Button
           variant="outline"
-          className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
+          className="rounded-full border-green-600 text-green-600 hover:bg-green-50 text-xs sm:text-sm w-full sm:w-auto"
           onClick={() => router.push("/orders")}
         >
           Quay lại đơn hàng

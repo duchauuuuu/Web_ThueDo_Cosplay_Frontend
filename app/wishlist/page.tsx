@@ -36,7 +36,7 @@ function WishlistProductCard({
 
   return (
     <div
-      className="group cursor-pointer bg-white rounded-lg transition-all duration-300 overflow-hidden relative p-3 border border-transparent hover:border-gray-200"
+      className="group cursor-pointer bg-white rounded-lg transition-all duration-300 overflow-hidden relative p-2 sm:p-3 border border-transparent hover:border-gray-200"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onView(product.id)}
@@ -52,7 +52,7 @@ function WishlistProductCard({
         />
 
         {/* Remove Button - Show on hover */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
           <button
             title="Xóa khỏi yêu thích"
             aria-label="Xóa khỏi yêu thích"
@@ -61,31 +61,31 @@ function WishlistProductCard({
               onRemove(product.id);
             }}
             disabled={isLoading}
-            className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-500 [&:hover>svg]:text-white cursor-pointer disabled:opacity-50"
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-500 [&:hover>svg]:text-white cursor-pointer disabled:opacity-50"
           >
-            <Trash2 className="w-5 h-5 text-gray-600" />
+            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
           </button>
         </div>
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-3 line-clamp-1">
+      <div className="p-2 sm:p-3 md:p-4">
+        <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 line-clamp-2 text-sm sm:text-base">
           {product.name}
         </h3>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
           {product.originalPrice && product.originalPrice > product.price ? (
             <>
-              <span className="text-lg font-bold text-green-600">
+              <span className="text-base sm:text-lg font-bold text-green-600">
                 {formatPrice(product.price)}
               </span>
-              <span className="text-sm text-gray-400 line-through">
+              <span className="text-xs sm:text-sm text-gray-400 line-through">
                 {formatPrice(product.originalPrice)}
               </span>
             </>
           ) : (
-            <span className="text-lg font-bold text-green-600">
+            <span className="text-base sm:text-lg font-bold text-green-600">
               {formatPrice(product.price)}
             </span>
           )}
@@ -93,13 +93,13 @@ function WishlistProductCard({
 
         {/* Add to Cart Button - Show on hover */}
         <button
-          className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-4 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full bg-green-600 hover:bg-black text-white font-medium py-2 px-3 sm:px-4 text-sm sm:text-base rounded-full transition-all duration-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transform translate-y-0 sm:translate-y-2 sm:group-hover:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             onAddToCart(product);
           }}
         >
-          <ShoppingCart size={18} />
+          <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           Thêm vào giỏ
         </button>
       </div>
@@ -322,7 +322,7 @@ export default function WishlistPage() {
       <ToastContainer />
       
       {/* Banner Header */}
-      <div className="relative py-24">
+      <div className="relative py-16 sm:py-20 md:py-24">
         <div className="absolute inset-0">
           <img 
             src="/ImgPoster/h1-banner01-1.jpg"
@@ -333,17 +333,17 @@ export default function WishlistPage() {
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center">
-            <h1 className="font-bold text-6xl text-white drop-shadow-lg">
+            <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg">
               Danh sách yêu thích
             </h1>
           </div>
         </div>
       </div>
 
-      <div className="bg-white" style={{ height: '60px' }}></div>
+      <div className="bg-white" style={{ height: '40px' }}></div>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-6 pb-12 -mt-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 sm:pb-10 md:pb-12 -mt-6 sm:-mt-8">
         {/* Loading state */}
         {favoritesLoading ? (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
@@ -363,27 +363,27 @@ export default function WishlistPage() {
             </main>
           </div>
         ) : favoritesError ? (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-            <p className="text-red-500 text-lg mb-4">Không thể tải danh sách yêu thích</p>
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-8 sm:p-12 text-center">
+            <p className="text-red-500 text-base sm:text-lg mb-3 sm:mb-4">Không thể tải danh sách yêu thích</p>
             <button
               onClick={() => mutate()}
-              className="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-black transition-colors"
+              className="px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-full hover:bg-black transition-colors"
             >
               Thử lại
             </button>
           </div>
         ) : favorites.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-            <Heart className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-8 sm:p-12 text-center">
+            <Heart className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               Danh sách yêu thích trống
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
               Bạn chưa có sản phẩm yêu thích nào. Hãy khám phá và thêm những sản phẩm bạn thích!
             </p>
             <button
               onClick={() => router.push('/product')}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-full hover:bg-black transition-colors"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-full hover:bg-black transition-colors"
             >
               Khám phá sản phẩm
             </button>
@@ -393,8 +393,8 @@ export default function WishlistPage() {
             {/* Sidebar Filters */}
             <aside className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
               {/* Categories */}
-              <div className="mb-8">
-                <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
+              <div className="mb-6 sm:mb-8">
+                <h2 className="mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-bold text-gray-800">
                   Danh mục trang phục
                 </h2>
                 {categoriesLoading ? (
@@ -413,7 +413,7 @@ export default function WishlistPage() {
                       <button
                         key={category.id}
                         onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
-                        className={`group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+                      className={`group w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base transition-all ${
                           selectedCategory === category.id
                             ? "bg-green-600 text-white"
                             : "bg-white text-gray-700 hover:bg-black hover:text-white border border-gray-200"
@@ -430,18 +430,18 @@ export default function WishlistPage() {
               </div>
 
               {/* Price Range */}
-              <div className="mb-8">
-                <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
+              <div>
+                <h2 className="mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-bold text-gray-800">
                   Khoảng giá
                 </h2>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
                   {/* Price display */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-36 text-left text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                  <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4">
+                    <div className="flex-1 text-left text-xs sm:text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
                       {formatPrice(Math.round(priceRange[0] / 50000) * 50000)}
                     </div>
-                    <div className="w-6 text-center text-sm text-gray-500">—</div>
-                    <div className="w-36 text-right text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                    <div className="w-4 sm:w-6 text-center text-xs sm:text-sm text-gray-500">—</div>
+                    <div className="flex-1 text-right text-xs sm:text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
                       {formatPrice(Math.round(priceRange[1] / 50000) * 50000)}
                     </div>
                   </div>
@@ -500,7 +500,7 @@ export default function WishlistPage() {
               {/* Clear Filters Button */}
               <button
                 onClick={handleClearFilters}
-                className="w-full px-6 py-3 bg-green-600 text-white rounded-full hover:bg-black transition-colors font-medium mt-[10px]"
+                className="w-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-full hover:bg-black transition-colors font-medium mt-3 sm:mt-[10px]"
               >
                 Xóa tất cả lọc
               </button>
@@ -509,16 +509,16 @@ export default function WishlistPage() {
             {/* Products Grid */}
             <main className="lg:col-span-3">
               {/* Top Bar */}
-              <div className="mb-8 flex items-center justify-between rounded-2xl bg-[#fcf2e8] px-6 py-4">
-                <span className="text-gray-800 font-medium">
+              <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-3 sm:py-4">
+                <span className="text-gray-800 font-medium text-sm sm:text-base">
                   Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredProducts.length)} trong {filteredProducts.length} kết quả
                 </span>
-                <div className="flex items-center gap-4">
-                  <div className="relative">
+                <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-initial">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-8 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600 cursor-pointer"
+                      className="appearance-none w-full rounded-lg border border-gray-300 bg-white px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600 cursor-pointer"
                     >
                       <option value="newest">Sắp xếp mặc định</option>
                       <option value="price-low">Giá: Thấp đến cao</option>
@@ -535,17 +535,17 @@ export default function WishlistPage() {
               </div>
 
               {pagedProducts.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-                  <Heart className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-8 sm:p-12 text-center">
+                  <Heart className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                     Không tìm thấy sản phẩm
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
                     Không có sản phẩm nào phù hợp với bộ lọc của bạn.
                   </p>
                   <button
                     onClick={handleClearFilters}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-full hover:bg-black transition-colors"
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-full hover:bg-black transition-colors"
                   >
                     Xóa bộ lọc
                   </button>
@@ -553,7 +553,7 @@ export default function WishlistPage() {
               ) : (
                 <>
                   {/* Products Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     {pagedProducts.map((product) => (
                       <WishlistProductCard
                         key={product.id}
@@ -568,9 +568,9 @@ export default function WishlistPage() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-2 sm:gap-3 justify-center">
                       <button
-                        className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         disabled={page === 1}
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                       >
@@ -579,14 +579,14 @@ export default function WishlistPage() {
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                         <button
                           key={num}
-                          className={`w-10 h-10 rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300 cursor-pointer`}
+                          className={`w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300 cursor-pointer`}
                           onClick={() => setPage(num)}
                         >
                           {num}
                         </button>
                       ))}
                       <button
-                        className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         disabled={page === totalPages}
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       >

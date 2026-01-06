@@ -322,12 +322,12 @@ export default function ProfilePage() {
 
   if (profileError || !userProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-red-500 text-lg mb-4">Không thể tải thông tin hồ sơ</p>
+          <p className="text-red-500 text-base sm:text-lg mb-3 sm:mb-4">Không thể tải thông tin hồ sơ</p>
           <button
             onClick={() => mutateProfile()}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             Thử lại
           </button>
@@ -344,7 +344,7 @@ export default function ProfilePage() {
       <ToastContainer />
       
       {/* Header Banner */}
-      <div className="relative py-24">
+      <div className="relative py-16 sm:py-20 md:py-24">
         <div className="absolute inset-0">
           <img 
             src="/ImgPoster/h1-banner01-1.jpg"
@@ -355,27 +355,27 @@ export default function ProfilePage() {
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center">
-            <h1 className="font-bold text-6xl text-white drop-shadow-lg mb-2">
+            <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg mb-2">
               Hồ sơ
             </h1>
-            <p className="text-white/90 text-lg">Quản lý thông tin cá nhân của bạn</p>
+            <p className="text-white/90 text-sm sm:text-base md:text-lg">Quản lý thông tin cá nhân của bạn</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white" style={{ height: '60px' }}></div>
+      <div className="bg-white" style={{ height: '40px' }}></div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 -mt-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 -mt-6 sm:-mt-8">
         <div className="max-w-4xl mx-auto">
           {/* Profile Card */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden mb-4 sm:mb-6">
             {/* Avatar Section */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-8 text-center">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 sm:p-8 text-center">
               <div className="relative inline-block">
                 {userProfile.avatar ? (
                   <div 
-                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => setSelectedAvatar(userProfile.avatar || null)}
                   >
                     <Image
@@ -387,19 +387,19 @@ export default function ProfilePage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
-                    <div className="w-full h-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-4xl font-bold">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                    <div className="w-full h-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-bold">
                       {userProfile.fullName?.[0]?.toUpperCase() || 'U'}
                     </div>
                   </div>
                 )}
                 <label
                   htmlFor="avatar-upload"
-                  className={`absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-100 transition-colors ${
+                  className={`absolute bottom-0 right-0 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-100 transition-colors ${
                     isUploadingAvatar ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  <Camera className="w-5 h-5 text-gray-700" />
+                  <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
                   <input
                     id="avatar-upload"
                     type="file"
@@ -411,27 +411,27 @@ export default function ProfilePage() {
                 </label>
               </div>
               {isUploadingAvatar && (
-                <p className="text-white/80 text-sm mt-4">Đang tải ảnh lên...</p>
+                <p className="text-white/80 text-xs sm:text-sm mt-3 sm:mt-4">Đang tải ảnh lên...</p>
               )}
             </div>
 
             {/* Profile Info */}
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               {isEditing ? (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Full Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       Họ và tên
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       <input
                         type="text"
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Nhập họ và tên"
                       />
                     </div>
@@ -439,39 +439,39 @@ export default function ProfilePage() {
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       Số điện thoại
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Nhập số điện thoại"
                       />
                     </div>
                   </div>
 
                   {/* Address */}
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <div className="space-y-3 sm:space-y-4">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       Địa chỉ
                     </label>
                     
                     {/* Province and District */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                           Tỉnh thành <span className="text-red-500">*</span>
                         </label>
                         <select
                           name="province"
                           value={formData.province}
                           onChange={(e) => setFormData({...formData, province: e.target.value, district: ''})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
                         >
                           <option value="">Chọn tỉnh thành</option>
                           <option value="hcm">Thành phố Hồ Chí Minh</option>
@@ -482,7 +482,7 @@ export default function ProfilePage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                           Phường xã <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -490,7 +490,7 @@ export default function ProfilePage() {
                           value={formData.district}
                           onChange={handleInputChange}
                           disabled={!formData.province}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                         >
                           <option value="">Chọn phường / xã</option>
                           {formData.province && districtsByProvince[formData.province]?.map((district) => (
@@ -502,17 +502,17 @@ export default function ProfilePage() {
 
                     {/* Street Address */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Tên đường số nhà <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                         <input
                           type="text"
                           name="address"
                           value={formData.address}
                           onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           placeholder="Nhập tên đường / số nhà"
                         />
                       </div>
@@ -520,67 +520,67 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-3 sm:pt-4">
                     <button
                       onClick={handleSave}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                     >
-                      <Save className="w-5 h-5" />
+                      <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                       Lưu thay đổi
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
                       Hủy
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-3 sm:space-y-4 md:space-y-6">
                   {/* Email (Read-only) */}
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                    <Mail className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-1">Email</p>
-                      <p className="text-gray-900 font-medium">{userProfile.email}</p>
+                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Email</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-medium break-words">{userProfile.email}</p>
                     </div>
                   </div>
 
                   {/* Full Name */}
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                    <User className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-1">Họ và tên</p>
-                      <p className="text-gray-900 font-medium">{userProfile.fullName || 'Chưa cập nhật'}</p>
+                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Họ và tên</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-medium">{userProfile.fullName || 'Chưa cập nhật'}</p>
                     </div>
                   </div>
 
                   {/* Phone */}
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                    <Phone className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-1">Số điện thoại</p>
-                      <p className="text-gray-900 font-medium">{userProfile.phone || 'Chưa cập nhật'}</p>
+                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Số điện thoại</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-medium">{userProfile.phone || 'Chưa cập nhật'}</p>
                     </div>
                   </div>
 
                   {/* Address */}
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-1">Địa chỉ</p>
-                      <p className="text-gray-900 font-medium">{userProfile.address || 'Chưa cập nhật'}</p>
+                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Địa chỉ</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-medium break-words">{userProfile.address || 'Chưa cập nhật'}</p>
                     </div>
                   </div>
 
                   {/* Join Date */}
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                    <Calendar className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-1">Tham gia từ</p>
-                      <p className="text-gray-900 font-medium">
+                  <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">Tham gia từ</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-medium">
                         {userProfile.createdAt 
                           ? new Date(userProfile.createdAt).toLocaleDateString('vi-VN', {
                               year: 'numeric',
@@ -595,9 +595,9 @@ export default function ProfilePage() {
                   {/* Edit Button */}
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                   >
-                    <Edit2 className="w-5 h-5" />
+                    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     Chỉnh sửa thông tin
                   </button>
                 </div>
@@ -606,32 +606,32 @@ export default function ProfilePage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* Orders Card */}
             <div
               onClick={() => router.push('/orders')}
-              className="bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+              className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 cursor-pointer hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Đơn hàng</p>
-                  <p className="text-3xl font-bold text-gray-900">{ordersCount}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-1">Đơn hàng</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{ordersCount}</p>
                 </div>
-                <Package className="w-8 h-8 text-gray-400" />
+                <Package className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" />
               </div>
             </div>
 
             {/* Favorites Card */}
             <div
               onClick={() => router.push('/wishlist')}
-              className="bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+              className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 cursor-pointer hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm mb-1">Yêu thích</p>
-                  <p className="text-3xl font-bold text-gray-900">{favoritesCount}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-1">Yêu thích</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{favoritesCount}</p>
                 </div>
-                <Heart className="w-8 h-8 text-gray-400" />
+                <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" />
               </div>
             </div>
           </div>
@@ -642,16 +642,16 @@ export default function ProfilePage() {
       {/* Avatar Modal */}
       {selectedAvatar && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4"
           style={{ backgroundColor: 'rgba(141, 142, 144, 0.4)' }}
           onClick={() => setSelectedAvatar(null)}
         >
           <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <button
               onClick={() => setSelectedAvatar(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-1.5 sm:p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
             >
-              <X className="w-6 h-6 text-gray-800" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />
             </button>
             <Image
               src={selectedAvatar}

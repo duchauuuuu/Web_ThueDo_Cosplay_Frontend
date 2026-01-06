@@ -184,13 +184,13 @@ export default function PaymentPage() {
   
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải thông tin đơn hàng</h2>
-          <p className="text-gray-600 mb-6">{error.message}</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-red-600 mb-3 sm:mb-4">Lỗi tải thông tin đơn hàng</h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{error.message}</p>
           <button
             onClick={() => router.push('/orders')}
-            className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
+            className="bg-green-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base rounded-full hover:bg-green-700 transition-colors"
           >
             Quay lại đơn hàng
           </button>
@@ -221,15 +221,15 @@ export default function PaymentPage() {
       }
       
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
               Đơn hàng không cần thanh toán online hoặc chưa có QR code
             </h2>
             {payment.method === 'cash' && (
               <button
                 onClick={() => router.push('/orders')}
-                className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
+                className="bg-green-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base rounded-full hover:bg-green-700 transition-colors"
               >
                 Xem đơn hàng
               </button>
@@ -247,35 +247,35 @@ export default function PaymentPage() {
       <ToastContainer />
       
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6">
         {/* Countdown Timer */}
         {timeLeft !== null && (
-          <div className={`mb-6 rounded-lg border-2 p-4 ${
+          <div className={`mb-4 sm:mb-6 rounded-lg border-2 p-3 sm:p-4 ${
             timeLeft < 120 
               ? 'bg-red-50 border-red-300' 
               : timeLeft < 300 
                 ? 'bg-orange-50 border-orange-300' 
                 : 'bg-blue-50 border-blue-300'
           }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                 {timeLeft < 120 ? (
-                  <AlertCircle className="h-6 w-6 text-red-600" />
+                  <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0" />
                 ) : (
-                  <Clock className="h-6 w-6 text-blue-600" />
+                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
                 )}
-                <div>
-                  <div className="text-sm font-medium text-gray-700">
+                <div className="min-w-0">
+                  <div className="text-xs sm:text-sm font-medium text-gray-700">
                     {timeLeft === 0 ? 'Hết thời gian thanh toán' : 'Thời gian còn lại để thanh toán'}
                   </div>
                   {timeLeft > 0 && (
-                    <div className="text-xs text-gray-600 mt-1">
+                    <div className="text-xs text-gray-600 mt-0.5 sm:mt-1">
                       Vui lòng hoàn tất thanh toán trong thời gian này
                     </div>
                   )}
                 </div>
               </div>
-              <div className={`text-3xl font-bold font-mono ${
+              <div className={`text-2xl sm:text-3xl font-bold font-mono flex-shrink-0 ${
                 timeLeft < 120 
                   ? 'text-red-600' 
                   : timeLeft < 300 
@@ -289,32 +289,32 @@ export default function PaymentPage() {
         )}
 
         {/* Instruction */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex gap-3">
-          <div className="text-2xl">💡</div>
-          <div className="text-sm text-gray-700">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex gap-2 sm:gap-3">
+          <div className="text-xl sm:text-2xl flex-shrink-0">💡</div>
+          <div className="text-xs sm:text-sm text-gray-700">
             Mở App Ngân hàng bất kỳ để <strong>quét mã VietQR</strong> hoặc{' '}
             <strong>chuyển khoản</strong> chính xác số tiền, nội dung bên dưới
           </div>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-4 sm:p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {/* Left Column - QR Code */}
             <div className="flex flex-col items-center justify-center">
               {/* QR Code */}
-              <div className="relative">
+              <div className="relative w-full max-w-xs sm:max-w-sm">
                 {paymentUrl ? (
                   <Image
                     src={paymentUrl}
                     alt="QR Code"
                     width={320}
                     height={320}
-                    className="rounded-lg"
+                    className="rounded-lg w-full h-auto"
                     unoptimized
                   />
                 ) : (
-                  <div className="w-80 h-80 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <div className="w-full aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
                     <Loading variant="inline" />
                   </div>
                 )}
@@ -322,69 +322,69 @@ export default function PaymentPage() {
             </div>
 
             {/* Right Column - Payment Details */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Bank Info Header */}
-              <div className="flex items-start gap-3 pb-4 border-b">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-sm">ICB</span>
+              <div className="flex items-start gap-2 sm:gap-3 pb-3 sm:pb-4 border-b">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-xs sm:text-sm">ICB</span>
                 </div>
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 mb-1">Ngân hàng</div>
-                  <div className="font-semibold text-gray-800">{order.bankName || 'Ngân hàng TMCP Công Thương Việt Nam'}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500 mb-0.5 sm:mb-1">Ngân hàng</div>
+                  <div className="font-semibold text-sm sm:text-base text-gray-800">{order.bankName || 'Ngân hàng TMCP Công Thương Việt Nam'}</div>
                 </div>
               </div>
 
               {/* Account Name */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 mb-1">Chủ tài khoản:</div>
-                  <div className="font-semibold text-gray-800">{order.accountName || 'NGUYEN DUC HAU'}</div>
+              <div className="flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500 mb-0.5 sm:mb-1">Chủ tài khoản:</div>
+                  <div className="font-semibold text-sm sm:text-base text-gray-800">{order.accountName || 'NGUYEN DUC HAU'}</div>
                 </div>
                 <button
                   onClick={() => handleCopy(order.accountName || 'NGUYEN DUC HAU', 'Tên chủ tài khoản')}
-                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer border border-green-200 flex-shrink-0"
                 >
                   Sao chép
                 </button>
               </div>
 
               {/* Account Number */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 mb-1">Số tài khoản:</div>
-                  <div className="font-semibold text-gray-800">{order.accountNo || '109876820087'}</div>
+              <div className="flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500 mb-0.5 sm:mb-1">Số tài khoản:</div>
+                  <div className="font-semibold text-sm sm:text-base text-gray-800">{order.accountNo || '109876820087'}</div>
                 </div>
                 <button
                   onClick={() => handleCopy(order.accountNo || '109876820087', 'Số tài khoản')}
-                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer border border-green-200 flex-shrink-0"
                 >
                   Sao chép
                 </button>
               </div>
 
               {/* Amount */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 mb-1">Số tiền:</div>
-                  <div className="font-semibold text-gray-800">{payment.amount?.toLocaleString('vi-VN') || (order.totalAmount || 0).toLocaleString('vi-VN')} vnd</div>
+              <div className="flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500 mb-0.5 sm:mb-1">Số tiền:</div>
+                  <div className="font-semibold text-sm sm:text-base text-gray-800">{payment.amount?.toLocaleString('vi-VN') || (order.totalAmount || 0).toLocaleString('vi-VN')} vnd</div>
                 </div>
                 <button
                   onClick={() => handleCopy(payment.amount?.toString() || (order.totalAmount || 0).toString(), 'Số tiền')}
-                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-green-200"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer border border-green-200 flex-shrink-0"
                 >
                   Sao chép
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-xs text-gray-500 mb-1">Nội dung:</div>
-                  <div className="font-semibold text-gray-800 break-all">{paymentContent || payment.transactionId || order.orderNumber}</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-500 mb-0.5 sm:mb-1">Nội dung:</div>
+                  <div className="font-semibold text-sm sm:text-base text-gray-800 break-all">{paymentContent || payment.transactionId || order.orderNumber}</div>
                 </div>
                 <button
                   onClick={() => handleCopy(paymentContent || payment.transactionId || order.orderNumber || '', 'Nội dung')}
-                  className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium transition-colors ml-2 cursor-pointer border border-green-200"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer border border-green-200 flex-shrink-0"
                 >
                   Sao chép
                 </button>
@@ -393,9 +393,9 @@ export default function PaymentPage() {
           </div>
 
           {/* Note Below */}
-          <div className="mt-6">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
+          <div className="mt-4 sm:mt-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-gray-700">
                 <strong>Lưu ý :</strong> Nhập chính xác số tiền <strong>{(payment.amount || order.totalAmount || 0).toLocaleString('vi-VN')}</strong>, nội dung{' '}
                 <strong>{paymentContent || payment.transactionId || order.orderNumber}</strong> khi chuyển khoản
               </p>
@@ -403,10 +403,10 @@ export default function PaymentPage() {
           </div>
 
           {/* Cancel Button */}
-          <div className="mt-6 text-center">
+          <div className="mt-4 sm:mt-6 text-center">
             <button
               onClick={handleCancel}
-              className="px-16 py-3 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-full transition-colors cursor-pointer"
+              className="w-full sm:w-auto px-8 sm:px-16 py-2.5 sm:py-3 text-sm sm:text-base bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-full transition-colors cursor-pointer"
             >
               Hủy
             </button>
@@ -416,7 +416,7 @@ export default function PaymentPage() {
 
       {/* Cancel Payment Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
             className="absolute inset-0"
@@ -424,28 +424,28 @@ export default function PaymentPage() {
           ></div>
           
           {/* Modal */}
-          <div className="relative bg-white rounded-lg border border-gray-300 shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="relative bg-white rounded-lg border border-gray-300 shadow-xl p-4 sm:p-6 w-full max-w-md">
             {/* Title */}
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4 text-center">
               HỦY
             </h3>
             
             {/* Message */}
-            <p className="text-gray-700 mb-6 text-center">
+            <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6 text-center">
               Quý khách có chắc chắn muốn hủy giao dịch này?
             </p>
             
             {/* Buttons */}
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
               <button
                 onClick={handleCloseModal}
-                className="px-6 py-2 bg-gray-100 border border-gray-400 text-gray-700 font-normal rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-5 sm:px-6 py-2 text-sm sm:text-base bg-gray-100 border border-gray-400 text-gray-700 font-normal rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
               >
                 Đóng
               </button>
               <button
                 onClick={handleConfirmCancel}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-normal rounded-full transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-5 sm:px-6 py-2 text-sm sm:text-base bg-red-600 hover:bg-red-700 text-white font-normal rounded-full transition-colors cursor-pointer"
               >
                 Xác nhận hủy
               </button>

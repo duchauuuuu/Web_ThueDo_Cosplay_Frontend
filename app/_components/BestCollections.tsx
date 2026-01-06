@@ -63,9 +63,9 @@ const BestCollections = () => {
 
   return (
     <section 
-      className="relative overflow-hidden mx-7 rounded-lg bg-cover bg-center bg-no-repeat" 
+      className="relative overflow-hidden mx-4 sm:mx-6 lg:mx-7 rounded-lg bg-cover bg-center bg-no-repeat" 
       style={{ 
-        height: '450px', 
+        height: '350px',
         backgroundImage: 'url("/ImgPoster/h1-banner01-1.jpg")'
       }}
     >
@@ -73,20 +73,20 @@ const BestCollections = () => {
       <div className="absolute"></div>
 
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className="space-y-3 max-w-lg" style={{ marginLeft: '60px' }}>
+            <div className="space-y-2 sm:space-y-3 max-w-lg text-center lg:text-left mx-auto lg:mx-0 lg:ml-[60px]">
               <div className="space-y-1">
-                <p className="font-medium tracking-wide uppercase text-sm" style={{ color: '#ced73b' }}>Bộ Sưu Tập Cosplay.</p>
-                <h1 className="font-bold text-white leading-tight tracking-tight text-3xl">
+                <p className="font-medium tracking-wide uppercase text-xs sm:text-sm" style={{ color: '#ced73b' }}>Bộ Sưu Tập Cosplay.</p>
+                <h1 className="font-bold text-white leading-tight tracking-tight text-xl sm:text-2xl lg:text-3xl">
                   TRANG PHỤC COSPLAY
                   <br />
                   <span className="text-balance">ĐƯỢC YÊU THÍCH NHẤT</span>
                 </h1>
               </div>
 
-              <p className="text-slate-300 leading-relaxed font-light max-w-md text-sm">
+              <p className="text-slate-300 leading-relaxed font-light max-w-md text-xs sm:text-sm mx-auto lg:mx-0">
                 Khám phá những bộ đồ cosplay hot nhất, được nhiều bạn trẻ lựa chọn.
                 Thuê ngay hôm nay để hóa thân thành nhân vật bạn yêu thích!
               </p>
@@ -94,7 +94,7 @@ const BestCollections = () => {
               <Button
                 size="sm"
                 onClick={() => router.push('/product')}
-                className="bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-6 py-2 text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden cursor-pointer"
+                className="bg-white text-black hover:bg-green-600 hover:text-white font-semibold px-4 sm:px-6 py-2 text-xs sm:text-sm rounded-full group transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden cursor-pointer mx-auto lg:mx-0"
               >
                 <span className="flex items-center">
                   <span className="relative overflow-hidden">
@@ -105,16 +105,16 @@ const BestCollections = () => {
                       Thuê Ngay
                     </span>
                   </span>
-                  <ChevronRight className="ml-2 h-4 w-4" />
+                  <ChevronRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                 </span>
               </Button>
             </div>
 
-            {/* Right Images Grid */}
-            <div className="relative flex justify-center items-center">
+            {/* Right Images Grid - Hidden on mobile */}
+            <div className="relative hidden lg:flex justify-center items-center">
               <div className="relative w-full max-w-lg">
                 {/* Grid container */}
-                <div className="grid grid-cols-3 gap-4 transform rotate-12 scale-95 origin-center group cursor-pointer transition-all duration-500 hover:scale-105 hover:rotate-[20deg]">
+                <div className="grid grid-cols-3 gap-3 lg:gap-4 transform rotate-12 scale-95 origin-center group cursor-pointer transition-all duration-500 hover:scale-105 hover:rotate-[20deg]">
                   {/* Row 1 - 3 images */}
                   <div className="transform translate-y-0">
                     <div className="relative">
@@ -122,7 +122,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[0].src}
                           alt={cosplayImages[0].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -135,7 +135,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[1].src}
                           alt={cosplayImages[1].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -148,7 +148,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[2].src}
                           alt={cosplayImages[2].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -162,7 +162,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[3].src}
                           alt={cosplayImages[3].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -175,7 +175,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[4].src}
                           alt={cosplayImages[4].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -188,7 +188,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[5].src}
                           alt={cosplayImages[5].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -202,7 +202,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[6].src}
                           alt={cosplayImages[6].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -215,7 +215,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[7].src}
                           alt={cosplayImages[7].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>
@@ -228,7 +228,7 @@ const BestCollections = () => {
                         <img
                           src={cosplayImages[8].src}
                           alt={cosplayImages[8].alt}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-24 lg:h-32 object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                       </div>

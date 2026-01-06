@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart, Package, LogOut } from "lucide-react"
+import { ShoppingCart, User, ChevronDown, LogIn, UserPlus, Heart, Package, LogOut, Menu, X } from "lucide-react"
 import { useCart } from "@/store/useCartStore"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useFavoriteStore } from "@/store/useFavoriteStore"
@@ -28,6 +28,7 @@ import {
   NavigationMenuViewport,
 } from "@/components/ui/navigation-menu"
 const Header = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { totalItems, isMiniCartOpen, closeMiniCart } = useCart()
   const { totalFavorites } = useFavoriteStore()
   const { user, isAuthenticated, logout } = useAuthStore()
@@ -63,20 +64,20 @@ const Header = () => {
   return (
     <header className="w-full sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <div className="relative">
               <Image 
                 src="/logo.png" 
                 alt="HAUCOSPLAY Logo" 
-                width={50} 
-                height={50}
-                className="rounded-lg"
+                width={40} 
+                height={40}
+                className="rounded-lg sm:w-[50px] sm:h-[50px]"
               />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-wide text-green-600">
+            <div className="hidden sm:block">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-wide text-green-600">
                 HAUCOSPLAY
               </h1>
               <p className="text-xs text-[#09331a]">THẾ GIỚI COSPLAY CHO BẠN</p>
@@ -109,15 +110,15 @@ const Header = () => {
           </nav>
 
           {/* Utilities */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Wishlist */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleWishlistClick}
-              className="h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 hover:bg-green-50 hover:text-green-700 text-gray-700"
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0 relative transition-all duration-200 hover:scale-110 hover:bg-green-50 hover:text-green-700 text-gray-700"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               {totalFavorites > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {totalFavorites > 99 ? '99+' : totalFavorites}
@@ -131,9 +132,9 @@ const Header = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-9 w-9 p-0 relative transition-all duration-200 hover:scale-110 hover:bg-green-50 hover:text-green-700 text-gray-700"
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0 relative transition-all duration-200 hover:scale-110 hover:bg-green-50 hover:text-green-700 text-gray-700"
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {totalItems > 99 ? '99+' : totalItems}
@@ -146,10 +147,10 @@ const Header = () => {
             {/* User Account */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 px-2 transition-all duration-200 hover:scale-105 flex items-center gap-1.5 hover:bg-green-50 hover:text-green-700 text-gray-700">
+                <Button variant="ghost" size="sm" className="h-8 sm:h-9 px-1.5 sm:px-2 transition-all duration-200 hover:scale-105 flex items-center gap-1 sm:gap-1.5 hover:bg-green-50 hover:text-green-700 text-gray-700">
                   {isAuthenticated && user ? (
                     user.avatar ? (
-                      <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+                      <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full overflow-hidden flex items-center justify-center">
                         <Image
                           src={user.avatar}
                           alt={user.fullName || "User"}
@@ -159,16 +160,16 @@ const Header = () => {
                         />
                       </div>
                     ) : user.fullName ? (
-                      <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold text-xs">
+                      <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold text-xs">
                         {user.fullName.charAt(0).toUpperCase()}
                       </div>
                     ) : (
-                      <User className="h-5 w-5" />
+                      <User className="h-4 w-4 sm:h-5 sm:w-5" />
                     )
                   ) : (
-                    <User className="h-5 w-5" />
+                    <User className="h-4 w-4 sm:h-5 sm:w-5" />
                   )}
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="sr-only">Tài khoản</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -230,8 +231,48 @@ const Header = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Mobile Menu Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden h-8 w-8 sm:h-9 sm:w-9 p-0 text-gray-700 hover:bg-green-50 hover:text-green-700"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+              <span className="sr-only">Menu</span>
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <nav className="lg:hidden py-4 border-t border-gray-200">
+            <div className="flex flex-col space-y-2">
+              {menuItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link 
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                      isActive 
+                        ? 'bg-green-100 text-green-800'
+                        : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </div>
+          </nav>
+        )}
       </div>
       
       {/* Mini Cart */}

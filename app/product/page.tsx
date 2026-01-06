@@ -288,13 +288,13 @@ function ProductPageContent() {
     <div className="min-h-screen bg-white">
       <ToastContainer />
       {/* Main Content Section */}
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-4">
           {/* Sidebar Filters */}
           <aside className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
             {/* Search Bar */}
-            <div className="mb-8">
-              <div className="flex gap-3">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex gap-2 sm:gap-3">
                 <div className="flex-1 relative">
                   <input
                     type="text"
@@ -302,7 +302,7 @@ function ProductPageContent() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="w-full rounded-full border border-gray-300 bg-white px-6 py-3 text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                    className="w-full rounded-full border border-gray-300 bg-white px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-[#2d2d2d] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   />
                   {searchInput && (
                     <button
@@ -318,16 +318,16 @@ function ProductPageContent() {
                 </div>
                 <button 
                   onClick={handleSearch}
-                  className="rounded-full bg-green-600 p-3 text-white hover:bg-black transition-colors cursor-pointer"
+                  className="rounded-full bg-green-600 p-2.5 sm:p-3 text-white hover:bg-black transition-colors cursor-pointer flex-shrink-0"
                 >
-                  <Search size={20} />
+                  <Search className="w-5 h-5 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
 
             {/* Categories */}
-            <div className="mb-8">
-              <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-bold text-gray-800">
                 Danh mục trang phục
               </h2>
               {categoriesLoading ? (
@@ -346,7 +346,7 @@ function ProductPageContent() {
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
-                      className={`group w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+                      className={`group w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base transition-all ${
                         selectedCategory === category.id
                           ? "bg-green-600 text-white"
                           : "bg-white text-gray-700 hover:bg-black hover:text-white border border-gray-200"
@@ -364,17 +364,17 @@ function ProductPageContent() {
 
             {/* Price Range */}
             <div>
-              <h2 className="mb-4 rounded-2xl bg-[#fcf2e8] px-6 py-3 text-lg font-bold text-gray-800">
+              <h2 className="mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-bold text-gray-800">
                 Khoảng giá
               </h2>
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
                 {/* Price display: fixed columns so the dash doesn't move */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-36 text-left text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4">
+                  <div className="flex-1 text-left text-xs sm:text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
                     {formatPrice(Math.round(priceRange[0] / 50000) * 50000)}
                   </div>
-                  <div className="w-6 text-center text-sm text-gray-500">—</div>
-                  <div className="w-36 text-right text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
+                  <div className="w-4 sm:w-6 text-center text-xs sm:text-sm text-gray-500">—</div>
+                  <div className="flex-1 text-right text-xs sm:text-sm font-semibold text-gray-800 overflow-hidden whitespace-nowrap">
                     {formatPrice(Math.round(priceRange[1] / 50000) * 50000)}
                   </div>
                 </div>
@@ -433,7 +433,7 @@ function ProductPageContent() {
             {/* Clear All Filters Button */}
             <button 
               onClick={handleClearFilters}
-              className="w-full rounded-full bg-green-600 px-6 py-3 font-semibold text-white hover:bg-black hover:text-white transition-colors cursor-pointer mt-[10px]"
+              className="w-full rounded-full bg-green-600 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white hover:bg-black hover:text-white transition-colors cursor-pointer mt-4 sm:mt-[10px]"
             >
               Xóa tất cả lọc
             </button>
@@ -442,14 +442,14 @@ function ProductPageContent() {
           {/* Main Content */}
           <main className="lg:col-span-3">
             {/* Top Bar */}
-            <div className="mb-8 flex items-center justify-between rounded-2xl bg-[#fcf2e8] px-6 py-4">
-              <span className="text-gray-800 font-medium">Hiển thị 1–{Math.min(pageSize, pagedProducts.length)} trong {total} kết quả</span>
-              <div className="flex items-center gap-4">
-                <div className="relative">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 rounded-xl sm:rounded-2xl bg-[#fcf2e8] px-4 sm:px-6 py-3 sm:py-4">
+              <span className="text-gray-800 font-medium text-sm sm:text-base">Hiển thị 1–{Math.min(pageSize, pagedProducts.length)} trong {total} kết quả</span>
+              <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-8 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    className="appearance-none w-full rounded-lg border border-gray-300 bg-white px-3 sm:px-4 py-2 pr-8 text-sm sm:text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600"
                   >
                     <option value="default">Sắp xếp mặc định</option>
                     <option value="mostFavorited">Yêu thích nhiều nhất tuần</option>
@@ -468,7 +468,7 @@ function ProductPageContent() {
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
               {pagedProducts.map((backendProduct) => {
                     const sortedImages = backendProduct.productImages
                       ?.filter((img: any) => img.isActive)
@@ -513,9 +513,9 @@ function ProductPageContent() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-2 sm:gap-3 justify-center">
                 <button
-                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
@@ -524,14 +524,14 @@ function ProductPageContent() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                   <button
                     key={num}
-                    className={`w-10 h-10 rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300 cursor-pointer`}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full ${num === page ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:border-green-600 hover:text-green-600"} border-2 ${num === page ? "border-green-600" : "border-gray-300"} flex items-center justify-center transition-all duration-300 cursor-pointer`}
                     onClick={() => setPage(num)}
                   >
                     {num}
                   </button>
                 ))}
                 <button
-                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 text-sm sm:text-base rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-green-600 hover:text-green-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >

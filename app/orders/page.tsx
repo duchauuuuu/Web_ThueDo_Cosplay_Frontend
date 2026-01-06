@@ -235,7 +235,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="relative py-24">
+      <div className="relative py-16 sm:py-20 md:py-24">
         <div className="absolute inset-0">
           <img 
             src="/ImgPoster/h1-banner01-1.jpg"
@@ -245,26 +245,26 @@ export default function OrdersPage() {
           <div className="absolute inset-0 bg-black/20"></div>
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-center font-bold text-6xl text-white drop-shadow-lg">
+          <h1 className="text-center font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg">
             Đơn hàng của tôi
           </h1>
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-          <p className="text-sm text-gray-600">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8 md:py-10">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <p className="text-xs sm:text-sm text-gray-600">
             Tổng cộng {totalElements} đơn đã đặt
           </p>
           
           {/* Filter tabs */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={() => {
                 setFilterType('all');
                 setPage(0);
               }}
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-colors ${
                 filterType === 'all'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -277,7 +277,7 @@ export default function OrdersPage() {
                 setFilterType('commented');
                 setPage(0);
               }}
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-colors ${
                 filterType === 'commented'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -290,7 +290,7 @@ export default function OrdersPage() {
                 setFilterType('not-commented');
                 setPage(0);
               }}
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-colors ${
                 filterType === 'not-commented'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -301,7 +301,8 @@ export default function OrdersPage() {
           </div>
         </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -383,17 +384,73 @@ export default function OrdersPage() {
         </Table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {paginatedOrders.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-gray-500">
+            {orders.length === 0 
+              ? "Bạn chưa có đơn hàng nào."
+              : "Không có đơn hàng nào ở trang này."}
+          </div>
+        ) : (
+          paginatedOrders.map((order: Order) => {
+            let total: number | string | null | undefined = order.totalPrice || order.totalAmount;
+            if (!total && order.orderItems && order.orderItems.length > 0) {
+              total = order.orderItems.reduce((sum: number, item) => {
+                const itemPrice = typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0);
+                const itemQty = item.quantity || 1;
+                return sum + (itemPrice * itemQty);
+              }, 0);
+            }
+
+            return (
+              <div key={order.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">
+                      #{order.orderNumber || order.id}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(order.createdAt)}
+                    </p>
+                  </div>
+                  <Badge
+                    className={`${statusColor[order.status?.toLowerCase()] || 'bg-gray-100 text-gray-800'} border-0 px-2.5 py-0.5 text-xs font-medium rounded-full cursor-default`}
+                  >
+                    {statusLabel[order.status?.toLowerCase()] || order.status}
+                  </Badge>
+                </div>
+                <div className="border-t border-gray-100 pt-3 mb-3">
+                  <p className="text-base font-semibold text-gray-900 mb-1">
+                    {formatCurrency(total)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {buildSummary(order)}
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  className="w-full rounded-full bg-green-600 text-sm font-semibold text-white hover:bg-green-700"
+                >
+                  <Link href={`/orders/${order.id}`}>Xem chi tiết</Link>
+                </Button>
+              </div>
+            );
+          })
+        )}
+      </div>
+
       {orders.length > 0 && totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between text-sm text-slate-600">
-          <span>
+        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-slate-600">
+          <span className="order-2 sm:order-1">
             Trang {page + 1}/{totalPages}
           </span>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 order-1 sm:order-2">
             <Button
               variant="outline"
               disabled={page === 0}
               onClick={() => setPage((prev) => Math.max(0, prev - 1))}
-              className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
+              className="rounded-full border-green-600 text-green-600 hover:bg-green-50 text-xs sm:text-sm px-4 sm:px-6"
             >
               Trước
             </Button>
@@ -403,7 +460,7 @@ export default function OrdersPage() {
               onClick={() =>
                 setPage((prev) => Math.min(totalPages - 1, prev + 1))
               }
-              className="rounded-full border-green-600 text-green-600 hover:bg-green-50"
+              className="rounded-full border-green-600 text-green-600 hover:bg-green-50 text-xs sm:text-sm px-4 sm:px-6"
             >
               Sau
             </Button>

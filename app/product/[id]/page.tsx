@@ -286,8 +286,8 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Product Detail Section */}
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:items-start">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 lg:items-start">
           {/* Product Images */}
           <div>
             {/* Main Image */}
@@ -305,7 +305,7 @@ export default function ProductDetailPage() {
 
             {/* Thumbnail Images */}
             {productImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                 {productImages.map((src: string, idx: number) => (
                   <button
                     key={idx}
@@ -328,32 +328,32 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Details */}
-          <div className="bg-white rounded-lg px-8 pb-8 pt-0 space-y-6">
+          <div className="bg-white rounded-lg px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 pt-0 space-y-4 sm:space-y-5 lg:space-y-6">
             {/* Title and Rating */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-3">{product.name}</h1>
-              <div className="flex items-center gap-3 mb-4">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2 sm:mb-3">{product.name}</h1>
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <div className="flex gap-1">
                   {renderStars(product.rating)}
                 </div>
-                <span className="text-gray-600 text-sm">({product.reviewCount} đánh giá)</span>
+                <span className="text-gray-600 text-xs sm:text-sm">({product.reviewCount} đánh giá)</span>
               </div>
             </div>
 
             {/* Price */}
-            <div className="border-b border-gray-200 pb-6">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="border-b border-gray-200 pb-4 sm:pb-5 lg:pb-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 {product.discountPrice ? (
                   <>
-                    <span className="text-3xl font-bold text-green-600">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">
                       {formatPrice(product.discountPrice)}
                     </span>
-                    <span className="text-xl text-gray-400 line-through">
+                    <span className="text-base sm:text-lg lg:text-xl text-gray-400 line-through">
                       {formatPrice(product.price)}
                     </span>
                   </>
                 ) : (
-                  <span className="text-3xl font-bold text-green-600">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">
                     {formatPrice(product.price)}
                   </span>
                 )}
@@ -361,9 +361,9 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Product Information */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-gray-800 text-lg">Thông tin sản phẩm</h3>
-              <div className="space-y-3 text-sm">
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="font-bold text-gray-800 text-base sm:text-lg">Thông tin sản phẩm</h3>
+              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="font-semibold text-gray-600">Danh mục:</span>
                   <span className="text-gray-800">{product.category}</span>
@@ -380,33 +380,33 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Description */}
-            <div className="space-y-3">
-              <h3 className="font-bold text-gray-800 text-lg">Mô tả</h3>
-              <p className="text-gray-700 leading-relaxed text-base">
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-bold text-gray-800 text-base sm:text-lg">Mô tả</h3>
+              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                 {product.description}
               </p>
             </div>
 
             {/* Quantity and Actions */}
-            <div className="space-y-4 pt-6 border-t border-gray-200">
-              <div className="flex items-center gap-4">
-                <span className="font-semibold text-gray-700">Số lượng:</span>
+            <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-5 lg:pt-6 border-t border-gray-200">
+              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <span className="font-semibold text-gray-700 text-sm sm:text-base">Số lượng:</span>
                 {/* Quantity Selector */}
                 <div className="flex items-center gap-0 bg-green-700 rounded-full overflow-hidden">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 text-white hover:cursor-pointer"
+                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-white hover:cursor-pointer"
                   >
-                    <Minus size={16} />
+                    <Minus size={14} className="sm:w-4 sm:h-4" />
                   </button>
-                  <span className="w-16 py-2 text-white font-semibold text-lg bg-green-700 text-center">
+                  <span className="w-12 sm:w-16 py-1.5 sm:py-2 text-white font-semibold text-base sm:text-lg bg-green-700 text-center">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-2 text-white hover:cursor-pointer"
+                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-white hover:cursor-pointer"
                   >
-                    <Plus size={16} />
+                    <Plus size={14} className="sm:w-4 sm:h-4" />
                   </button>
                 </div>
 
@@ -449,18 +449,18 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-green-600 hover:bg-black text-white font-semibold py-3 px-6 rounded-full transition-colors duration-300 flex items-center justify-center gap-2"
+                  className="flex-1 bg-green-600 hover:bg-black text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-full transition-colors duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <ShoppingCart size={20} />
+                  <ShoppingCart size={18} className="sm:w-5 sm:h-5" />
                   Thêm vào giỏ
                 </button>
                 
                 <button 
                   onClick={handleBuyNow}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-full transition-colors duration-300 text-sm sm:text-base"
                 >
                   Mua ngay
                 </button>
@@ -468,17 +468,17 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Promo Banner */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <div className="w-6 h-6 flex-shrink-0">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 flex items-start sm:items-center gap-2 sm:gap-3">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-full h-full fill-green-600">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-green-700">
+                <p className="text-xs sm:text-sm font-semibold text-green-700">
                   ✨ Miễn phí giao hàng cho đơn hàng trên 1.000.000₫
                 </p>
-                <p className="text-xs text-green-600">
+                <p className="text-[10px] sm:text-xs text-green-600">
                   Đổi trả trong 7 ngày • Bảo hành chất lượng
                 </p>
               </div>
@@ -488,7 +488,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Reviews Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10 lg:pb-12">
         <ReviewSection productId={productId} />
       </div>
 

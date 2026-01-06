@@ -160,20 +160,20 @@ const CurrentSellClothes = () => {
   }
 
   return (
-    <section className="py-16 px-[30px] max-w-none mx-0">
+    <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-[30px] max-w-none mx-0">
       <ToastContainer />
       {/* Header */}
-      <div className="flex justify-between items-center mb-12">
-        <h2 className="text-4xl font-bold text-gray-900">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-10 lg:mb-12 gap-4 sm:gap-0">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center sm:text-left">
           Thuê nhiều nhất tuần
         </h2>
         <button 
           onClick={() => router.push('/product?sortBy=mostOrdered')}
-          className="flex items-center gap-2 px-6 py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer"
+          className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-black bg-white hover:text-white hover:bg-green-600 rounded-full transition-all duration-300 group border border-gray-300 hover:border-green-600 cursor-pointer text-sm sm:text-base"
         >
-          <span className="text-lg font-medium">Xem tất cả</span>
+          <span className="font-medium lg:text-lg">Xem tất cả</span>
           <svg
-            className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
+            className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -183,14 +183,14 @@ const CurrentSellClothes = () => {
         </button>
       </div>
 
-      {/* Products Flex */}
-      <div className="flex flex-wrap gap-6 justify-center md:justify-start">
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
         {products.length > 0 ? (
           products.map((product) => (
             <ProductCard
               key={product.id}
               {...product}
-              className="w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] xl:w-[calc(16.666%-20px)]"
+              className="w-full"
               onView={handleViewProduct}
               onAddToCart={handleAddToCart}
               onFavorite={handleFavorite}

@@ -628,7 +628,7 @@ const CartPage = () => {
       <ToastContainer />
       <div className="min-h-screen bg-white">
         {/* Cart Title */}
-        <div className="relative py-24">
+        <div className="relative py-16 sm:py-20 md:py-24">
           <div className="absolute inset-0">
             <img 
               src="/ImgPoster/h1-banner01-1.jpg"
@@ -639,7 +639,7 @@ const CartPage = () => {
           </div>
           <div className="container mx-auto px-4 relative z-10">
             <h1 
-              className="text-center font-bold text-6xl text-white drop-shadow-lg"
+              className="text-center font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg"
             >
               Giỏ hàng
             </h1>
@@ -648,16 +648,14 @@ const CartPage = () => {
 
       {items.length === 0 ? (
         // Empty cart - hiển thị SVG và text
-        <div className="container mx-auto px-4 py-20 max-w-7xl">
+        <div className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-7xl">
           <div className="flex flex-col items-center justify-center">
             {/* Sad Face Icon */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                width="120" 
-                height="120" 
+                className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 text-green-600"
                 fill="none"
-                className="text-green-600"
               >
                 <path 
                   fill="currentColor" 
@@ -667,11 +665,11 @@ const CartPage = () => {
             </div>
             
             {/* Empty Cart Text */}
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-600 mb-4">Giỏ hàng rỗng</h2>
-              <p className="text-gray-500 text-lg mb-8">Bạn chưa có sản phẩm nào trong giỏ hàng</p>
+            <div className="text-center px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-600 mb-3 sm:mb-4">Giỏ hàng rỗng</h2>
+              <p className="text-gray-500 text-base sm:text-lg mb-6 sm:mb-8">Bạn chưa có sản phẩm nào trong giỏ hàng</p>
               <Link href="/product">
-                <button className="bg-green-600 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-green-700 transition-colors shadow-lg">
+                <button className="bg-green-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold text-base sm:text-lg hover:bg-green-700 transition-colors shadow-lg w-full sm:w-auto">
                   Tiếp tục mua sắm
                 </button>
               </Link>
@@ -680,11 +678,11 @@ const CartPage = () => {
         </div>
       ) : (
         // Cart có sản phẩm - hiển thị đầy đủ
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 max-w-7xl">
           {/* Cart Table */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-            {/* Table Header */}
-            <div className="bg-green-600 text-white grid grid-cols-12 gap-4 px-6 py-4 font-bold text-xl">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6 sm:mb-8">
+            {/* Table Header - Hidden on mobile */}
+            <div className="hidden lg:grid bg-green-600 text-white grid-cols-12 gap-4 px-6 py-4 font-bold text-base xl:text-xl">
               <div className="col-span-1 pr-6 whitespace-nowrap">Sản phẩm</div>
               <div className="col-span-7 border-l border-white/30 px-6">Chi tiết</div>
               <div className="col-span-4 text-center border-l border-white/30 pl-6">Tổng</div>
@@ -696,58 +694,58 @@ const CartPage = () => {
               const hasDiscount = item.originalPrice && item.originalPrice > item.salePrice
               
               return (
-                <div key={item.id} className="grid grid-cols-12 gap-4 px-6 py-6 border-b border-gray-200 items-start">
+                <div key={item.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200 items-start">
                   {/* Product */}
-                  <div className="col-span-1 flex items-start pr-6">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                  <div className="lg:col-span-1 flex items-start lg:pr-6">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                       <Image
                         src={item.image || '/assets/imgs/placeholder.png'}
                         alt={item.name}
-                        width={80}
-                        height={80}
+                        width={96}
+                        height={96}
                         className="object-cover"
                       />
                     </div>
                   </div>
 
                   {/* Details */}
-                  <div className="col-span-7 border-l border-gray-200 px-6 flex items-center justify-between">
+                  <div className="lg:col-span-7 lg:border-l lg:border-gray-200 lg:px-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
                     <div>
                       <Link href={`/product/${item.id}`}>
-                        <h3 className="text-xl font-bold text-green-600 mb-2 cursor-pointer hover:underline transition-all" style={{ textUnderlineOffset: '3px' }}>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-green-600 mb-1 sm:mb-2 cursor-pointer hover:underline transition-all line-clamp-2" style={{ textUnderlineOffset: '3px' }}>
                           {item.name}
                         </h3>
                       </Link>
                       <div className="flex items-center gap-2">
                         {hasDiscount && (
-                          <span className="text-gray-500 line-through text-base">
+                          <span className="text-gray-500 line-through text-sm sm:text-base">
                             {item.originalPrice!.toLocaleString('vi-VN')}₫
                           </span>
                         )}
-                        <span className="text-gray-800 font-semibold text-base">
+                        <span className="text-gray-800 font-semibold text-sm sm:text-base">
                           {currentPrice.toLocaleString('vi-VN')}₫
                         </span>
                       </div>
                     </div>
                     
                     {/* Quantity Controls and Remove */}
-                    <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-row lg:flex-col items-center gap-3">
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-0 bg-green-600 rounded-full overflow-hidden">
                         <button
                           onClick={() => handleUpdateQuantity(item.id, -1)}
-                          className="px-3 py-2 text-white  hover:cursor-pointer  "
+                          className="px-2 sm:px-3 py-1.5 sm:py-2 text-white  hover:cursor-pointer  "
                         >
-                          <Minus size={14} />
+                          <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
-                        <span className="w-12 py-2 text-white font-semibold text-lg text-center flex items-center justify-center">
+                        <span className="w-10 sm:w-12 py-1.5 sm:py-2 text-white font-semibold text-base sm:text-lg text-center flex items-center justify-center">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => handleUpdateQuantity(item.id, 1)}
-                          className="px-3 py-2 text-white hover:cursor-pointer"
+                          className="px-2 sm:px-3 py-1.5 sm:py-2 text-white hover:cursor-pointer"
                         >
-                          <Plus size={14} />
+                          <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
                       </div>
                       {/* Remove Button */}
@@ -804,12 +802,12 @@ const CartPage = () => {
             </div>
 
             {/* Customer Information Section */}
-            <div className="px-6 py-4">
-              <h2 className="font-bold text-xl text-gray-800">THÔNG TIN KHÁCH HÀNG</h2>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <h2 className="font-bold text-lg sm:text-xl text-gray-800">THÔNG TIN KHÁCH HÀNG</h2>
             </div>
-            <div className="px-6 pb-6 space-y-4">
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
               {/* Gender */}
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4 sm:gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
@@ -817,9 +815,9 @@ const CartPage = () => {
                     value="male"
                     checked={customerInfo.gender === 'male'}
                     onChange={(e) => setCustomerInfo({...customerInfo, gender: e.target.value})}
-                    className="w-5 h-5 text-green-600 accent-green-600"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 accent-green-600"
                   />
-                  <span className="text-lg">Anh</span>
+                  <span className="text-base sm:text-lg">Anh</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -828,16 +826,16 @@ const CartPage = () => {
                     value="female"
                     checked={customerInfo.gender === 'female'}
                     onChange={(e) => setCustomerInfo({...customerInfo, gender: e.target.value})}
-                    className="w-5 h-5 text-green-600 accent-green-600"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 accent-green-600"
                   />
-                  <span className="text-lg">Chị</span>
+                  <span className="text-base sm:text-lg">Chị</span>
                 </label>
               </div>
 
               {/* Name and Phone */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     Họ và tên <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -845,11 +843,11 @@ const CartPage = () => {
                     placeholder="Nhập họ và tên"
                     value={customerInfo.fullName}
                     onChange={(e) => setCustomerInfo({...customerInfo, fullName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">
+                  <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                     Số điện thoại <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -857,14 +855,14 @@ const CartPage = () => {
                     placeholder="Số điện thoại"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-gray-700 mb-2">
+                <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -872,16 +870,16 @@ const CartPage = () => {
                   placeholder="Nhập địa chỉ email"
                   value={customerInfo.email}
                   onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                 />
               </div>
             </div>
 
             {/* Delivery Method Section */}
-            <div className="px-6 py-4">
-              <h2 className="font-bold text-xl text-gray-800">HÌNH THỨC GIAO HÀNG</h2>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <h2 className="font-bold text-lg sm:text-xl text-gray-800">HÌNH THỨC GIAO HÀNG</h2>
             </div>
-            <div className="px-6 pb-6 space-y-4">
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
               {/* Delivery Type */}
               <div className="flex items-center gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -962,7 +960,7 @@ const CartPage = () => {
               )}
 
                   {/* Province and District */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-gray-700 mb-2">
                         Tỉnh thành <span className="text-red-500">*</span>
@@ -1024,7 +1022,7 @@ const CartPage = () => {
                     />
                   </div>              {/* Note */}
               <div>
-                <label className="block text-gray-700 mb-2">
+                <label className="block text-gray-700 mb-2 text-sm sm:text-base">
                   Yêu cầu khác (nếu có)
                 </label>
                 <input
@@ -1032,20 +1030,20 @@ const CartPage = () => {
                   placeholder="Nhập yêu cầu"
                   value={customerInfo.note}
                   onChange={(e) => setCustomerInfo({...customerInfo, note: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                 />
               </div>
 
               {/* Save Recipient Checkbox */}
-              <div className="flex items-start gap-2 p-4">
+              <div className="flex items-start gap-2 p-3 sm:p-4">
                 <input
                   type="checkbox"
                   id="saveRecipient"
                   checked={customerInfo.saveRecipient}
                   onChange={(e) => setCustomerInfo({...customerInfo, saveRecipient: e.target.checked})}
-                  className="w-5 h-5 mt-0.5 text-green-600 accent-green-600 cursor-pointer"
+                  className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-green-600 accent-green-600 cursor-pointer"
                 />
-                <label htmlFor="saveRecipient" className="text-gray-700 cursor-pointer">
+                <label htmlFor="saveRecipient" className="text-gray-700 cursor-pointer text-sm sm:text-base">
                   Gọi người khác nhận hàng (Nếu có)
                 </label>
               </div>
@@ -1080,7 +1078,7 @@ const CartPage = () => {
                   </div>
 
                   {/* Recipient Name and Phone */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-gray-700 mb-2">
                         Họ và tên người nhận <span className="text-red-500">*</span>
@@ -1159,20 +1157,20 @@ const CartPage = () => {
             </div>
 
             {/* Cart Totals Section */}
-            <div className="px-6 py-4">
-              <h2 className="font-bold text-xl text-gray-800">CHI TIẾT THANH TOÁN</h2>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <h2 className="font-bold text-lg sm:text-xl text-gray-800">CHI TIẾT THANH TOÁN</h2>
             </div>
-            <div className="px-6 pb-6">
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6">
               {/* Tiền hàng */}
-              <div className="flex justify-between items-center py-3">
-                <span className="text-gray-700">Tiền hàng:</span>
-                <span className="text-gray-800 font-semibold">{subtotal.toLocaleString('vi-VN')} đ</span>
+              <div className="flex justify-between items-center py-2 sm:py-3">
+                <span className="text-gray-700 text-sm sm:text-base">Tiền hàng:</span>
+                <span className="text-gray-800 font-semibold text-sm sm:text-base">{subtotal.toLocaleString('vi-VN')} đ</span>
               </div>
 
               {/* Phí vận chuyển */}
-              <div className="flex justify-between items-center py-3">
-                <span className="text-gray-700">Phí vận chuyển:</span>
-                <span className="text-gray-800 font-semibold">{shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')} đ`}</span>
+              <div className="flex justify-between items-center py-2 sm:py-3">
+                <span className="text-gray-700 text-sm sm:text-base">Phí vận chuyển:</span>
+                <span className="text-gray-800 font-semibold text-sm sm:text-base">{shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')} đ`}</span>
               </div>
 
               {/* Khuyến mãi (Promotions) - Tạm thời ẩn vì chưa có trong backend */}
@@ -1249,9 +1247,9 @@ const CartPage = () => {
               </div>
 
               {/* Tổng cộng */}
-              <div className="flex justify-between items-center py-4">
-                <span className="text-gray-800 font-bold text-lg">Tổng cộng:</span>
-                <span className="text-red-600 font-bold text-2xl">{finalTotal.toLocaleString('vi-VN')} đ</span>
+              <div className="flex justify-between items-center py-3 sm:py-4">
+                <span className="text-gray-800 font-bold text-base sm:text-lg">Tổng cộng:</span>
+                <span className="text-red-600 font-bold text-xl sm:text-2xl">{finalTotal.toLocaleString('vi-VN')} đ</span>
               </div>
 
               {/* Terms Notice */}
@@ -1276,7 +1274,7 @@ const CartPage = () => {
               <div className="mt-4">
                 <button 
                   onClick={handleCheckout}
-                  className="w-full px-12 py-4 rounded-full font-bold text-lg uppercase tracking-wide transition-colors bg-green-600 text-white hover:bg-green-700 cursor-pointer shadow-lg"
+                  className="w-full px-8 sm:px-12 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg uppercase tracking-wide transition-colors bg-green-600 text-white hover:bg-green-700 cursor-pointer shadow-lg"
                 >
                   Thanh toán
                 </button>

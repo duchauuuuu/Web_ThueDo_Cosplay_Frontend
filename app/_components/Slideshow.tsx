@@ -78,7 +78,7 @@ const Slideshow = () => {
   }
 
   return (
-    <div className="relative w-full h-[549px] overflow-hidden">
+    <div className="relative w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[549px] overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
@@ -107,20 +107,20 @@ const Slideshow = () => {
             </svg>
           </div>
 
-          <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center w-full">
               {/* Left Content */}
               <motion.div
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="space-y-6"
+                className="space-y-3 sm:space-y-4 lg:space-y-6 text-center lg:text-left"
               >
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className={`text-lg font-medium ${
+                  className={`text-sm sm:text-base lg:text-lg font-medium ${
                     theme === 'dark' ? 'text-teal-400' : 'text-teal-600'
                   }`}
                 >
@@ -131,7 +131,7 @@ const Slideshow = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
-                  className={`text-4xl lg:text-6xl font-bold leading-tight whitespace-pre-line ${
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold leading-tight whitespace-pre-line ${
                     theme === 'dark' ? 'text-gray-100' : 'text-gray-900'
                   }`}
                 >
@@ -142,7 +142,7 @@ const Slideshow = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
-                  className={`text-lg max-w-md ${
+                  className={`text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                   }`}
                 >
@@ -156,7 +156,7 @@ const Slideshow = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => router.push('/product')}
-                  className={`px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group cursor-pointer ${
+                  className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group cursor-pointer mx-auto lg:mx-0 text-sm sm:text-base ${
                     theme === 'dark' 
                       ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700' 
                       : 'bg-white text-gray-800 hover:bg-gray-50'
@@ -172,19 +172,19 @@ const Slideshow = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="relative flex justify-center items-center"
+                className="relative flex justify-center items-center hidden lg:flex"
               >
                 {/* Discount Badge */}
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.6, delay: 1.2, type: "spring" }}
-                  className="absolute top-8 left-8 z-20"
+                  className="absolute top-4 sm:top-8 left-4 sm:left-8 z-20"
                 >
-                  <div className={`bg-gradient-to-r ${slides[currentSlide].discountColor} text-white rounded-full w-24 h-24 flex items-center justify-center font-bold shadow-lg transform rotate-12`}>
+                  <div className={`bg-gradient-to-r ${slides[currentSlide].discountColor} text-white rounded-full w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center font-bold shadow-lg transform rotate-12`}>
                     <div className="text-center">
-                      <div className="text-xl font-bold">{slides[currentSlide].discount}</div>
-                      <div className="text-sm">OFF</div>
+                      <div className="text-base sm:text-lg md:text-xl font-bold">{slides[currentSlide].discount}</div>
+                      <div className="text-xs sm:text-sm">OFF</div>
                     </div>
                   </div>
                 </motion.div>
@@ -199,7 +199,7 @@ const Slideshow = () => {
                   }`}></div>
                   
                   {/* Main images layout */}
-                  <div className="relative grid grid-cols-2 gap-6 p-8">
+                  <div className="relative grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 md:p-8">
                     {slides[currentSlide].images.map((image, index) => (
                       <motion.div
                         key={index}
@@ -231,7 +231,7 @@ const Slideshow = () => {
                           transform: index === 1 ? 'translateY(-20px)' : 'translateY(20px)'
                         }}
                       >
-                        <div className={`p-3 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 ${
+                        <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 ${
                           theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                         }`}>
                           <Image
@@ -239,13 +239,13 @@ const Slideshow = () => {
                             alt={`Slide ${currentSlide + 1} - Image ${index + 1}`}
                             width={280}
                             height={400}
-                            className="rounded-xl object-cover w-full h-[400px]"
+                            className="rounded-lg sm:rounded-xl object-cover w-full h-[250px] sm:h-[300px] md:h-[400px]"
                           />
                         </div>
                         
                         {/* Decorative elements */}
-                        <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full opacity-60"></div>
-                        <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-pink-400 rounded-full opacity-40"></div>
+                        <div className="absolute -top-2 -right-2 w-3 h-3 sm:w-4 sm:h-4 bg-yellow-400 rounded-full opacity-60"></div>
+                        <div className="absolute -bottom-3 -left-3 w-4 h-4 sm:w-6 sm:h-6 bg-pink-400 rounded-full opacity-40"></div>
                       </motion.div>
                     ))}
                   </div>

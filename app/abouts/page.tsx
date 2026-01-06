@@ -183,7 +183,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* Title Section with Background */}
-      <div className="relative py-24 overflow-hidden">
+      <div className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src="/ImgPoster/h1-banner01-1.jpg"
@@ -194,16 +194,16 @@ export default function AboutPage() {
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <h1 
-            className="text-center font-bold text-6xl text-white drop-shadow-lg"
+            className="text-center font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg"
           >
             Về Chúng Tôi
           </h1>
         </div>
       </div>
  
-      <div className="about-container mx-auto py-8 px-10 space-y-12">
+      <div className="about-container mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-10 space-y-8 sm:space-y-10 lg:space-y-12">
         {/* Our Story Section */}
-        <section className="relative py-16 px-4 md:px-8 lg:px-16 overflow-hidden ">
+        <section className="relative py-8 sm:py-12 lg:py-16 px-4 md:px-6 lg:px-16 overflow-hidden ">
           {/* Background decorative elements */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-10 right-10 w-32 h-32 "></div>
@@ -215,32 +215,32 @@ export default function AboutPage() {
           </div>
 
           <div className="max-w-7xl mx-auto relative z-10">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
               {/* Left side - Images */}
               <div className="relative">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                   {/* Woman with dogs image */}
                   <div className="relative ">
-                    <div className=" p-6 relative ">
+                    <div className=" p-3 sm:p-4 lg:p-6 relative ">
                       <Image
                         src="/img_clothes/coTich/c46d5df0999df54df2c6a65223c6eaa5.jpg"
                         alt="Trang phục cosplay chất lượng cao"
                         width={300}
                         height={600}
-                        className="rounded-2xl object-cover w-full h-[28rem]"
+                        className="rounded-2xl object-cover w-full h-[18rem] sm:h-[24rem] lg:h-[28rem]"
                       />
                     </div>
                   </div>
 
                   {/* Cat image */}
-                  <div className="relative mt-8">
+                  <div className="relative mt-4 sm:mt-6 lg:mt-8">
                   <div className="bg-gradient-to-br from-emerald-50 to-green-100 rounded-3xl overflow-hidden">
                       <Image
                         src="/img_clothes/coTich/000aa6833cdc1c0415c4b11a8495510d.jpg"
                         alt="Bộ sưu tập trang phục cosplay đa dạng"
                         width={280}
                         height={500}
-                        className="object-cover w-full h-96"
+                        className="object-cover w-full h-64 sm:h-80 lg:h-96"
                       />
                     </div>
                   </div>
@@ -251,7 +251,7 @@ export default function AboutPage() {
                   className="absolute top-1/2 transform -translate-y-1/2 z-20"
                   style={{ left: "40%" }} // dịch trái thêm để nằm giữa hai ảnh
                 >
-                  <div className="relative w-24 h-24 flex items-center justify-center">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 flex items-center justify-center">
                     {/* Vòng tròn xoay */}
                     <div className="absolute inset-0 pointer-events-none">
                       <Image
@@ -269,7 +269,7 @@ export default function AboutPage() {
                       alt="Kuromi cosplay icon"
                       width={50}
                       height={50}
-                      className="object-contain z-10"
+                      className="object-contain z-10 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
                       priority
                     />
                   </div>
@@ -277,56 +277,56 @@ export default function AboutPage() {
               </div>
 
               {/* Right side - Content */}
-              <div className="space-y-8">
+              <div className="space-y-5 sm:space-y-6 lg:space-y-8">
                 {/* Header */}
-                <div className="space-y-4">
-                  <p className="text-green-600 font-semibold text-sm tracking-wider uppercase">CÂU CHUYỆN CỦA CHÚNG TÔI</p>
-                  <h2 className="text-4xl lg:text-5xl font-bold text-green-900 leading-tight">
+                <div className="space-y-3 sm:space-y-4">
+                  <p className="text-green-600 font-semibold text-xs sm:text-sm tracking-wider uppercase">CÂU CHUYỆN CỦA CHÚNG TÔI</p>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-green-900 leading-tight">
                     Biến Ước Mơ Cosplay Thành Hiện Thực: Câu Chuyện, Sứ Mệnh & Giá Trị Của Chúng Tôi
                   </h2>
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-700 text-lg leading-relaxed">
+                <p className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed">
                   Chúng tôi tự hào mang đến dịch vụ thuê trang phục cosplay chất lượng cao với đa dạng mẫu mã từ Anime, Cổ tích, Đồng phục đến các nhân vật nổi tiếng.
                   Mỗi bộ trang phục đều được chọn lọc kỹ lưỡng và chăm sóc cẩn thận để mang đến trải nghiệm cosplay hoàn hảo nhất cho bạn.
                 </p>
 
                 {/* Feature list */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-3 flex-shrink-0 shadow-sm">
-                      <Heart className="w-5 h-5 text-white" />
+                <div className="space-y-4 sm:space-y-5 lg:space-y-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-2 sm:p-2.5 lg:p-3 flex-shrink-0 shadow-sm">
+                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-green-900 text-lg">
+                      <h3 className="font-semibold text-green-900 text-sm sm:text-base lg:text-lg">
                         Địa chỉ tin cậy cho những cosplayer đam mê và khó tính
                       </h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full p-3 flex-shrink-0 shadow-sm">
-                      <Shirt className="w-5 h-5 text-white" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full p-2 sm:p-2.5 lg:p-3 flex-shrink-0 shadow-sm">
+                      <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-green-900 text-lg">Trang Phục Chất Lượng Cao Được Chăm Sóc Cẩn Thận</h3>
+                      <h3 className="font-semibold text-green-900 text-sm sm:text-base lg:text-lg">Trang Phục Chất Lượng Cao Được Chăm Sóc Cẩn Thận</h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="bg-gradient-to-r from-lime-500 to-green-500 rounded-full p-3 flex-shrink-0 shadow-sm">
-                      <Shield className="w-5 h-5 text-white" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="bg-gradient-to-r from-lime-500 to-green-500 rounded-full p-2 sm:p-2.5 lg:p-3 flex-shrink-0 shadow-sm">
+                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-green-900 text-lg">Trải Nghiệm Cosplay Hoàn Hảo Bắt Đầu Từ Đây</h3>
+                      <h3 className="font-semibold text-green-900 text-sm sm:text-base lg:text-lg">Trải Nghiệm Cosplay Hoàn Hảo Bắt Đầu Từ Đây</h3>
                     </div>
                   </div>
                 </div>
 
                 {/* CTA Button */}
-                <div className="pt-4">
-                  <button className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white px-8 py-6 text-lg rounded-full transition-all duration-300 transform hover:-translate-y-1 shadow-md">
+                <div className="pt-2 sm:pt-3 lg:pt-4">
+                  <button className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white px-6 py-3 sm:px-8 sm:py-4 lg:py-6 text-sm sm:text-base lg:text-lg rounded-full transition-all duration-300 transform hover:-translate-y-1 shadow-md">
                     Đọc Thêm
                   </button>
                 </div>
@@ -336,15 +336,15 @@ export default function AboutPage() {
         </section>
 
         {/* Statistics Section - Redesigned */}
-        <section className="py-16 px-4  relative overflow-hidden">
+        <section className="py-8 sm:py-12 lg:py-16 px-4 relative overflow-hidden">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
+            <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8">
               {/* Statistics Badges */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 flex-1">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 xl:gap-10 flex-1">
                 {/* Stat 1 - Jagged star shape - Color #f2be8f */}
                 <div className="relative flex justify-center group">
                   <div
-                    className="relative w-36 h-28 lg:w-44 lg:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
+                    className="relative w-28 h-24 sm:w-32 sm:h-26 md:w-36 md:h-28 lg:w-40 lg:h-30 xl:w-44 xl:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
                     style={{
                       backgroundColor: "#bbf7d0",
                       border: "2px solid #86efac",
@@ -352,9 +352,9 @@ export default function AboutPage() {
                       animationDelay: "0s"
                     }}
                   >
-                    <div className="text-center px-2">
-                      <div className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1">500+</div>
-                      <div className="text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
+                    <div className="text-center px-1 sm:px-2">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-0.5 sm:mb-1">500+</div>
+                      <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
                         TRANG PHỤC<br/>COSPLAY
                       </div>
                     </div>
@@ -364,7 +364,7 @@ export default function AboutPage() {
                 {/* Stat 2 - Scalloped oval - Color #ffb4a2 */}
                 <div className="relative flex justify-center group">
                   <div
-                    className="relative w-36 h-28 lg:w-44 lg:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
+                    className="relative w-28 h-24 sm:w-32 sm:h-26 md:w-36 md:h-28 lg:w-40 lg:h-30 xl:w-44 xl:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
                     style={{
                       backgroundColor: "#a5f3fc",
                       border: "2px solid #67e8f9",
@@ -372,9 +372,9 @@ export default function AboutPage() {
                       animationDelay: "0.3s"
                     }}
                   >
-                    <div className="text-center px-2">
-                      <div className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1">25+</div>
-                      <div className="text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
+                    <div className="text-center px-1 sm:px-2">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-0.5 sm:mb-1">25+</div>
+                      <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
                         THÀNH VIÊN<br/>ĐỘI NGŨ
                       </div>
                     </div>
@@ -384,7 +384,7 @@ export default function AboutPage() {
                 {/* Stat 3 - Wavy oval - Color #f2be8f */}
                 <div className="relative flex justify-center group">
                   <div
-                    className="relative w-36 h-28 lg:w-44 lg:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
+                    className="relative w-28 h-24 sm:w-32 sm:h-26 md:w-36 md:h-28 lg:w-40 lg:h-30 xl:w-44 xl:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
                     style={{
                       backgroundColor: "#bef264",
                       border: "2px solid #84cc16",
@@ -392,9 +392,9 @@ export default function AboutPage() {
                       animationDelay: "0.6s"
                     }}
                   >
-                    <div className="text-center px-2">
-                      <div className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1">5K+</div>
-                      <div className="text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
+                    <div className="text-center px-1 sm:px-2">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-0.5 sm:mb-1">5K+</div>
+                      <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
                         ĐƠN HÀNG<br/>THÀNH CÔNG
                       </div>
                     </div>
@@ -404,7 +404,7 @@ export default function AboutPage() {
                 {/* Stat 4 - Complex jagged - Color #ffb4a2 */}
                 <div className="relative flex justify-center group">
                   <div
-                    className="relative w-36 h-28 lg:w-44 lg:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
+                    className="relative w-28 h-24 sm:w-32 sm:h-26 md:w-36 md:h-28 lg:w-40 lg:h-30 xl:w-44 xl:h-32 flex items-center justify-center transition-all duration-500 animate-bounce hover:scale-110"
                     style={{
                       backgroundColor: "#99f6e4",
                       border: "2px solid #5eead4",
@@ -412,9 +412,9 @@ export default function AboutPage() {
                       animationDelay: "0.9s"
                     }}
                   >
-                    <div className="text-center px-2">
-                      <div className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1">50+</div>
-                      <div className="text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
+                    <div className="text-center px-1 sm:px-2">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-0.5 sm:mb-1">50+</div>
+                      <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-600 tracking-wide leading-tight">
                         NHÂN VẬT<br/>NỔI TIẾNG
                       </div>
                     </div>
@@ -433,13 +433,13 @@ export default function AboutPage() {
 
         </section>
        {/* Photo Gallery Section - Smooth draggable gallery */}
-       <section className="py-8">
+       <section className="py-6 sm:py-8">
          <div className="container mx-auto px-2 md:px-4">
           {/* Gallery Container */}
           <div className="w-full flex justify-center">
             <div 
               ref={galleryRef}
-              className="gallery-container inline-flex gap-3 md:gap-4 overflow-x-auto pb-4"
+              className="gallery-container inline-flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto pb-3 sm:pb-4"
               style={{
                 cursor: isDragging ? 'grabbing' : 'grab',
                 scrollbarWidth: 'none',
